@@ -1,0 +1,9 @@
+port=5658
+verify=False
+debug=False
+debug_level=WARNING
+node_ip=127.0.0.1
+light_ip={"127.0.0.1": "5658", "bismuth.live":"5658", "51.15.226.30" : "8150","wallet.bismuth.online":"8150","wallet1.bismuth.online":"8150","wallet2.bismuth.online":"8150","wallet.bismuthplatform.de":"8150"}
+terminal_output=False
+gui_scaling=adapt
+version=mainnet
