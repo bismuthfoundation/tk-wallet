@@ -177,29 +177,50 @@ def read_url_clicked(app_log, url):
     operation.insert(INSERT, result[3])  # operation
     openfield.insert(INSERT, result[4])  # openfield
 
-def node_connect():
+def node_connect(ip_param=None,port_param=None):
 
-    while not wallet.connected:
-        for ip, port in wallet.light_ip.items():
-            try:
-                app_log.warning(f"Status: Attempting to connect to {ip}:{port} out of {wallet.light_ip}")
+    if not ip_param:
+        while not wallet.connected:
+            for ip, port in wallet.light_ip.items():
+                try:
+                    app_log.warning(f"Status: Attempting to connect to {ip}:{port} out of {wallet.light_ip}")
 
-                wallet.s = socks.socksocket()
-                wallet.s.connect((ip, int(port)))
+                    wallet.s = socks.socksocket()
+                    wallet.s.connect((ip, int(port)))
 
-                refresh(keyring.myaddress)  # validate the connection
+                    refresh(keyring.myaddress)  # validate the connection
 
-                app_log.warning("Connection OK")
-                app_log.warning(f"Status: Wallet connected to {ip}:{port}")
-                ip_connected_var.set(f"{ip}:{port}")
+                    app_log.warning("Connection OK")
+                    app_log.warning(f"Status: Wallet connected to {ip}:{port}")
+                    ip_connected_var.set(f"{ip}:{port}")
 
-                wallet.ip = ip
-                wallet.port = port
-                wallet.connected = True
-                break
+                    wallet.ip = ip
+                    wallet.port = port
+                    wallet.connected = True
+                    break
 
-            except Exception as e:
-                app_log.warning(f"Status: Cannot connect to {ip}:{port} because {e}")
+                except Exception as e:
+                    app_log.warning(f"Status: Cannot connect to {ip}:{port} because {e}")
+    else:
+        try:
+            app_log.warning(f"Status: Attempting to connect to {ip_param}:{port_param} once.")
+
+            wallet.s = socks.socksocket()
+            wallet.s.connect((ip_param, int(port_param)))
+
+            refresh(keyring.myaddress)  # validate the connection
+
+            app_log.warning("Connection OK")
+            app_log.warning(f"Status: Wallet connected to {ip_param}:{port_param}")
+            ip_connected_var.set(f"{ip_param}:{port_param}")
+
+            wallet.ip = ip_param
+            wallet.port = port_param
+            wallet.connected = True
+
+
+        except Exception as e:
+            app_log.warning(f"Status: Cannot connect to {ip_param}:{port_param} because {e}")
 
 
 def replace_regex(string, replace):
@@ -1434,7 +1455,8 @@ if __name__ == "__main__":
             wallet.light_ip.clear()
 
             for entry in suggested_wallet_servers.json():
-                wallet.light_ip[entry["ip"]] = str(entry["port"])
+                if entry["active"]:
+                    wallet.light_ip[entry["ip"]] = str(entry["port"])
 
     except Exception as e:
         app_log.warning("Error {} getting Server list from API, using local list instead".format(e))
@@ -1606,9 +1628,9 @@ if __name__ == "__main__":
     menubar.add_cascade(label="Connection", menu=connect_menu)
     connect_list = []
 
-    for ip_once in wallet.light_ip:
-        connect_list.append(ip_once)
-        connect_menu.add_command(label=ip_once, command=lambda ip_once=ip_once: node_connect_once(ip_once))
+    for ip, port in wallet.light_ip.items():
+        connect_list.append(f'{ip}:{port}')
+        connect_menu.add_command(label=f'{ip}:{port}', command=lambda ip=ip: node_connect(ip, port))
 
     # labels
     Label(frame_entries, text="My Address:").grid(row=0, sticky=W + N, pady=5, padx=5)

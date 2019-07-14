@@ -5,7 +5,7 @@
 # openfield: token_name:amount
 
 import sqlite3
-import log
+from bisbasic import log
 from hashlib import blake2b
 
 __version__ = '0.0.2'
