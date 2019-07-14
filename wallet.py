@@ -25,20 +25,19 @@ import PIL.ImageTk
 import pyqrcode
 import requests
 import socks
+import recovery
+
 from Cryptodome.Cipher import AES, PKCS1_OAEP
 from Cryptodome.Hash import SHA
 from Cryptodome.PublicKey import RSA
 from Cryptodome.Random import get_random_bytes
 from Cryptodome.Signature import PKCS1_v1_5
 
-from bisbasic import connections, essentials
-
-import options
-import recovery
-from bisurl import *
-from polysign.signerfactory import SignerFactory
-from quantizer import quantize_eight
-from simplecrypt import encrypt, decrypt
+from bisbasic import connections, essentials, options
+from bisbasic.bisurl import *
+from bisbasic.polysign.signerfactory import SignerFactory
+from bisbasic.quantizer import quantize_eight
+from bisbasic.simplecrypt import encrypt, decrypt
 from tokensv2 import *
 
 #import matplotlib
