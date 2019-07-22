@@ -35,7 +35,7 @@ from Cryptodome.Signature import PKCS1_v1_5
 
 from bisbasic import connections, essentials, options
 from bisbasic.bisurl import *
-from bisbasic.polysign.signerfactory import SignerFactory
+from polysign.signerfactory import SignerFactory
 from bisbasic.quantizer import quantize_eight
 from bisbasic.simplecrypt import encrypt, decrypt
 from tokensv2 import *
