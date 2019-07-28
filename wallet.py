@@ -43,6 +43,7 @@ from tokensv2 import *
 from bismuthclient.bismuthclient import rpcconnections
 from bismuthclient import bismuthutil
 from bismuthclient.simplecrypt import encrypt, decrypt
+from bismuthclient.bismuthcrypto import keys_check, keys_load, keys_load_new, keys_save
 
 bismuth_util = bismuthutil.BismuthUtil()
 
@@ -334,7 +335,7 @@ def keys_load_dialog():
         app_log.warning(wallet_load)
         wallet_load = keys_untar(wallet_load)[0]
 
-    keyring.key, keyring.public_key_readable, keyring.private_key_readable, keyring.encrypted, keyring.unlocked, keyring.public_key_b64encoded, keyring.myaddress, keyring.keyfile = essentials.keys_load_new(wallet_load)  # upgrade later, remove blanks
+    keyring.key, keyring.public_key_readable, keyring.private_key_readable, keyring.encrypted, keyring.unlocked, keyring.public_key_b64encoded, keyring.myaddress, keyring.keyfile = keys_load_new(wallet_load)  # upgrade later, remove blanks
 
     encryption_button_refresh()
 
@@ -515,9 +516,9 @@ def encrypt_fn(destroy_this):
         try:
             ciphertext = encrypt(password, keyring.private_key_readable)
             ciphertext_export = base64.b64encode(ciphertext).decode()
-            essentials.keys_save(ciphertext_export, keyring.public_key_readable, keyring.myaddress, keyring.keyfile)
+            keys_save(ciphertext_export, keyring.public_key_readable, keyring.myaddress, keyring.keyfile)
             # encrypt_b.configure(text="Encrypted", state=DISABLED)
-            keyring.key, keyring.public_key_readable, keyring.private_key_readable, keyring.encrypted, keyring.unlocked, keyring.public_key_b64encoded, keyring.myaddress, keyring.keyfile = essentials.keys_load_new(keyring.keyfile.name)
+            keyring.key, keyring.public_key_readable, keyring.private_key_readable, keyring.encrypted, keyring.unlocked, keyring.public_key_b64encoded, keyring.myaddress, keyring.keyfile = keys_load_new(keyring.keyfile.name)
             encryption_button_refresh()
         finally:
             notbusy(destroy_this)
@@ -1446,9 +1447,9 @@ if __name__ == "__main__":
         os.rename("../wallet.der", "wallet.der")
     # upgrade wallet location after nuitka-required "files" folder introduction
 
-    essentials.keys_check(app_log, "wallet.der")
+    keys_check(app_log, "wallet.der")
 
-    keyring.key, keyring.public_key_readable, keyring.private_key_readable, keyring.encrypted, keyring.unlocked, keyring.public_key_b64encoded, keyring.myaddress, keyring.keyfile = essentials.keys_load(private_key_load, public_key_load)
+    keyring.key, keyring.public_key_readable, keyring.private_key_readable, keyring.encrypted, keyring.unlocked, keyring.public_key_b64encoded, keyring.myaddress, keyring.keyfile = keys_load(private_key_load, public_key_load)
     app_log.warning(f"Keyfile: {keyring.keyfile}")
 
 
