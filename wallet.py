@@ -1,5 +1,4 @@
-# add manual refresh, objectify
-
+# todo: re-add timeouts
 # icons created using http://www.winterdrache.de/freeware/png2ico/
 
 import ast
@@ -12,6 +11,8 @@ import tarfile
 import threading
 import time
 import webbrowser
+import base64
+import hashlib
 from datetime import datetime
 from decimal import *
 # from operator import itemgetter
@@ -33,12 +34,17 @@ from Cryptodome.PublicKey import RSA
 from Cryptodome.Random import get_random_bytes
 from Cryptodome.Signature import PKCS1_v1_5
 
-from bisbasic import connections, essentials, options
-from bisbasic.bisurl import *
+from bisbasic import essentials, options
 from polysign.signerfactory import SignerFactory
 from bisbasic.quantizer import quantize_eight
-from bisbasic.simplecrypt import encrypt, decrypt
 from tokensv2 import *
+
+#NEW
+from bismuthclient.bismuthclient import rpcconnections
+from bismuthclient import bismuthutil
+from bismuthclient.simplecrypt import encrypt, decrypt
+
+bismuth_util = bismuthutil.BismuthUtil()
 
 #import matplotlib
 #matplotlib.use('TkAgg')
@@ -57,7 +63,7 @@ class Keys:
 
 
 # Wallet needs a version for itself
-__version__ = '0.8.6'
+__version__ = '0.8.7'
 
 
 class Wallet():
@@ -84,7 +90,7 @@ class Wallet():
         self.protocol = None
 
 def mempool_clear(s):
-    connections.send(s, "mpclear")
+    wallet.s._send(s, "mpclear")
 
 
 def connection_invalidate():
@@ -153,29 +159,25 @@ def recover():
     messagebox.showinfo("Recovery Result", result)
 
 
-def create_url_clicked(app_log, command, recipient, amount, operation, openfield):
-    """isolated function so no GUI leftovers are in bisurl.py"""
-
-    result = create_url(app_log, command, recipient, amount, operation, openfield)
+def create_url_clicked(recipient, amount, operation, openfield):
+    result = bismuth_util.create_bis_url(recipient, amount, operation, openfield)
     url_r.delete(0, END)
     url_r.insert(0, result)
 
 
-def read_url_clicked(app_log, url):
-    """isolated function so no GUI leftovers are in bisurl.py"""
-
-    result = (read_url(app_log, url))
+def read_url_clicked(url):
+    result = bismuth_util.read_url(url)
 
     recipient.delete(0, END)
     amount.delete(0, END)
     operation.delete(0, END)
     openfield.delete("1.0", END)
 
-    recipient.insert(0, result[1])  # amount
-    amount.insert(0, result[2])  # recipient
+    recipient.insert(0, result['amount'])  # amount
+    amount.insert(0, result['recipient'])  # recipient
 
-    operation.insert(INSERT, result[3])  # operation
-    openfield.insert(INSERT, result[4])  # openfield
+    operation.insert(INSERT, result['operation'])  # operation
+    openfield.insert(INSERT, result['openfield'])  # openfield
 
 def node_connect(ip_param=None,port_param=None):
 
@@ -185,8 +187,7 @@ def node_connect(ip_param=None,port_param=None):
                 try:
                     app_log.warning(f"Status: Attempting to connect to {ip}:{port} out of {wallet.light_ip}")
 
-                    wallet.s = socks.socksocket()
-                    wallet.s.connect((ip, int(port)))
+                    wallet.s = rpcconnections.Connection((ip,int(port)))
 
                     refresh(keyring.myaddress)  # validate the connection
 
@@ -201,6 +202,7 @@ def node_connect(ip_param=None,port_param=None):
 
                 except Exception as e:
                     app_log.warning(f"Status: Cannot connect to {ip}:{port} because {e}")
+                    #raise #temporary
     else:
         try:
             app_log.warning(f"Status: Attempting to connect to {ip_param}:{port_param} once.")
@@ -231,9 +233,9 @@ def replace_regex(string, replace):
 def alias_register(alias_desired):
 
     with wallet.socket_wait:
-        connections.send(wallet.s, "aliascheck")
-        connections.send(wallet.s, alias_desired)
-        result = connections.receive(wallet.s, timeout=wallet.timeout)
+        wallet.s._send("aliascheck")
+        wallet.s._send(alias_desired)
+        result = wallet.s._receive()
 
     asterisk_check(result)
 
@@ -387,9 +389,9 @@ def aliases_list():
     aliases_box.grid(row=0, pady=0)
 
     with wallet.socket_wait:
-        connections.send(wallet.s, "aliasget")
-        connections.send(wallet.s, keyring.myaddress)
-        aliases_self = connections.receive(wallet.s, timeout=wallet.timeout)
+        wallet.s._send("aliasget")
+        wallet.s._send(keyring.myaddress)
+        aliases_self = wallet.s._receive()
     asterisk_check(aliases_self)
 
     for x in aliases_self:
@@ -587,9 +589,9 @@ def send_confirm(amount_input, recipient_input, operation_input, openfield_input
     if alias_cb_var.get():  # alias check
 
         with wallet.socket_wait:
-            connections.send(wallet.s, "addfromalias")
-            connections.send(wallet.s, recipient_input)
-            recipient_input = connections.receive(wallet.s, timeout=wallet.timeout)
+            wallet.s._send("addfromalias")
+            wallet.s._send(recipient_input)
+            recipient_input = wallet.s._receive()
 
         asterisk_check(recipient_input)
 
@@ -598,9 +600,9 @@ def send_confirm(amount_input, recipient_input, operation_input, openfield_input
         # get recipient's public key
 
         with wallet.socket_wait:
-            connections.send(wallet.s, "pubkeyget")
-            connections.send(wallet.s, recipient_input)
-            target_public_key_b64encoded = connections.receive(wallet.s, timeout=wallet.timeout)
+            wallet.s._send("pubkeyget")
+            wallet.s._send(recipient_input)
+            target_public_key_b64encoded = wallet.s._receive()
 
         asterisk_check(target_public_key_b64encoded)
 
@@ -691,9 +693,9 @@ def send(amount_input, recipient_input, operation_input, openfield_input):
             try:
 
                 with wallet.socket_wait:
-                    connections.send(wallet.s, "mpinsert")
-                    connections.send(wallet.s, tx_submit)
-                    reply = connections.receive(wallet.s, timeout=wallet.timeout)
+                    wallet.s._send("mpinsert")
+                    wallet.s._send(tx_submit)
+                    reply = wallet.s._receive()
                 asterisk_check(reply)
 
                 app_log.warning(f"Client: {reply}")
@@ -739,9 +741,9 @@ def qr(address):
 def msg_dialogue(address):
 
     with wallet.socket_wait:
-        connections.send(wallet.s, "addlist")
-        connections.send(wallet.s, keyring.myaddress)
-        addlist = connections.receive(wallet.s, timeout=wallet.timeout)
+        wallet.s._send("addlist")
+        wallet.s._send(keyring.myaddress)
+        addlist = wallet.s._receive()
     asterisk_check(addlist)
     app_log.warning(addlist)
 
@@ -752,9 +754,9 @@ def msg_dialogue(address):
                 # app_log.warning(x[11])
 
                 with wallet.socket_wait:
-                    connections.send(wallet.s, "aliasget")
-                    connections.send(wallet.s, x[2])
-                    msg_address = connections.receive(wallet.s, timeout=wallet.timeout)[0][0]
+                    wallet.s._send("aliasget")
+                    wallet.s._send(x[2])
+                    msg_address = wallet.s._receive()[0][0]
 
                 asterisk_check(msg_address)
 
@@ -809,9 +811,9 @@ def msg_dialogue(address):
                 # app_log.warning(x[11])
 
                 with wallet.socket_wait:
-                    connections.send(wallet.s, "aliasget")
-                    connections.send(wallet.s, x[3])
-                    received_aliases = connections.receive(wallet.s, timeout=wallet.timeout)
+                    wallet.s._send("aliasget")
+                    wallet.s._send(x[3])
+                    received_aliases = wallet.s._receive()
 
                 asterisk_check(received_aliases)
                 msg_recipient = received_aliases[0][0]
@@ -882,9 +884,9 @@ def msg_dialogue(address):
 def keepalive():
     try:
         with wallet.socket_wait:
-            connections.send(wallet.s, "aliasget") #some lighter function should be added to node.py (api_ping)
-            connections.send(wallet.s, "test")  # keep non-threaded connection alive
-            reply = connections.receive(wallet.s, timeout=wallet.timeout)
+            wallet.s._send("aliasget") #some lighter function should be added to node.py (api_ping)
+            wallet.s._send("test")  # keep non-threaded connection alive
+            reply = wallet.s._receive()
         asterisk_check(reply)
         app_log.warning(f"Keepalive triggered: {reply}")
     except Exception:
@@ -902,9 +904,9 @@ def refresh_auto():
 def csv_export(s):
 
     with wallet.socket_wait:
-        connections.send(s, "addlist")  # senders
-        connections.send(s, keyring.myaddress)
-        tx_list = connections.receive(s, timeout=wallet.timeout)
+        wallet.s._send(s, "addlist")  # senders
+        wallet.s._send(s, keyring.myaddress)
+        tx_list = wallet.s._receive(s, )
 
     asterisk_check(tx_list)
     app_log.warning(tx_list)
@@ -960,9 +962,9 @@ def tokens():
 
     try:
         with wallet.socket_wait:
-            connections.send(wallet.s, "tokensget")
-            connections.send(wallet.s, gui_address_t.get())
-            tokens_results = connections.receive(wallet.s, timeout=wallet.timeout)
+            wallet.s._send("tokensget")
+            wallet.s._send(gui_address_t.get())
+            tokens_results = wallet.s._receive()
 
         asterisk_check(tokens_results)
 
@@ -1060,12 +1062,12 @@ def table(address, addlist_20, mempool_total):
     if resolve_var.get():
 
         with wallet.socket_wait:
-            connections.send(wallet.s, "aliasesget")  # senders
-            connections.send(wallet.s, addlist_addressess)
-            aliases_address_results = connections.receive(wallet.s, timeout=wallet.timeout)
-            connections.send(wallet.s, "aliasesget")  # recipients
-            connections.send(wallet.s, reclist_addressess)
-            aliases_rec_results = connections.receive(wallet.s, timeout=wallet.timeout)
+            wallet.s._send("aliasesget")  # senders
+            wallet.s._send(addlist_addressess)
+            aliases_address_results = wallet.s._receive()
+            wallet.s._send("aliasesget")  # recipients
+            wallet.s._send(reclist_addressess)
+            aliases_rec_results = wallet.s._receive()
 
         asterisk_check(aliases_rec_results)
 
@@ -1077,9 +1079,9 @@ def table(address, addlist_20, mempool_total):
     # bind local address to local alias
     if resolve_var.get():
         with wallet.socket_wait:
-            connections.send(wallet.s, "aliasesget")  # local
-            connections.send(wallet.s, [gui_address_t.get()])
-            alias_local_result = connections.receive(wallet.s, timeout=wallet.timeout)[0]
+            wallet.s._send("aliasesget")  # local
+            wallet.s._send([gui_address_t.get()])
+            alias_local_result = wallet.s._receive()[0]
 
         asterisk_check(alias_local_result)
     # bind local address to local alias
@@ -1117,8 +1119,8 @@ def refresh(address):
     try:
 
         with wallet.socket_wait:
-            connections.send(wallet.s, "statusget")
-            wallet.statusget = connections.receive(wallet.s, timeout=wallet.timeout)
+            wallet.s._send("statusget")
+            wallet.statusget = wallet.s._receive()
 
         asterisk_check(wallet.statusget)
         wallet.status_version = wallet.statusget[7]
@@ -1126,9 +1128,9 @@ def refresh(address):
         server_timestamp_var.set("GMT: {}".format(time.strftime("%H:%M:%S", time.gmtime(int(float(wallet.stats_timestamp))))))
 
         with wallet.socket_wait:
-            connections.send(wallet.s, "balanceget")
-            connections.send(wallet.s, address)  # change address here to view other people's transactions
-            stats_account = connections.receive(wallet.s, timeout=wallet.timeout)
+            wallet.s._send("balanceget")
+            wallet.s._send(address)  # change address here to view other people's transactions
+            stats_account = wallet.s._receive()
 
         asterisk_check(stats_account)
         balance = stats_account[0]
@@ -1152,8 +1154,8 @@ def refresh(address):
         # 0000000011"blocklast"
 
         with wallet.socket_wait:
-            connections.send(wallet.s, "blocklast")
-            block_get = connections.receive(wallet.s, timeout=wallet.timeout)
+            wallet.s._send("blocklast")
+            block_get = wallet.s._receive()
 
         asterisk_check(block_get)
 
@@ -1167,8 +1169,8 @@ def refresh(address):
         # check difficulty
 
         with wallet.socket_wait:
-            connections.send(wallet.s, "diffget")
-            diff = connections.receive(wallet.s, timeout=wallet.timeout)
+            wallet.s._send("diffget")
+            diff = wallet.s._receive()
         asterisk_check(diff)
         # check difficulty
 
@@ -1191,8 +1193,8 @@ def refresh(address):
         # network status
 
         with wallet.socket_wait:
-            connections.send(wallet.s, "mpget")  # senders
-            wallet.mempool_total = connections.receive(wallet.s, timeout=wallet.timeout)
+            wallet.s._send("mpget")  # senders
+            wallet.mempool_total = wallet.s._receive()
 
         asterisk_check(wallet.mempool_total)
         mempool_count_var.set("Mempool txs: {}".format(len(wallet.mempool_total)))
@@ -1202,10 +1204,10 @@ def refresh(address):
         # address_var.set("Address: {}".format(address))
 
         with wallet.socket_wait:
-            connections.send(wallet.s, "addlistlim")
-            connections.send(wallet.s, address)
-            connections.send(wallet.s, "20")
-            addlist = connections.receive(wallet.s, timeout=wallet.timeout)
+            wallet.s._send("addlistlim")
+            wallet.s._send(address)
+            wallet.s._send("20")
+            addlist = wallet.s._receive()
         asterisk_check(addlist)
         app_log.warning(addlist)
 
@@ -1229,6 +1231,7 @@ def refresh(address):
         all_spend_check()
 
     except Exception as e:
+        #raise #temporary
 
         node_connect()
         app_log.warning(e)
@@ -1326,15 +1329,15 @@ def support_collection():
     stats_timestamp = wallet.statusget[9]
 
     with wallet.socket_wait:
-        connections.send(wallet.s, "blocklast")
-        block_get = connections.receive(wallet.s, timeout=wallet.timeout)
+        wallet.s._send("blocklast")
+        block_get = wallet.s._receive()
 
     asterisk_check(block_get)
     bl_height = block_get[0]
 
     with wallet.socket_wait:
-        connections.send(wallet.s, "blocklast")
-        blocklast = connections.receive(wallet.s, timeout=wallet.timeout)
+        wallet.s._send("blocklast")
+        blocklast = wallet.s._receive()
 
     asterisk_check(blocklast)
     db_timestamp_last = blocklast[1]
@@ -1777,7 +1780,7 @@ if __name__ == "__main__":
     url_insert_clipboard = Button(frame_entries, text="Paste", command=url_insert, font=("Tahoma", 7))
     url_insert_clipboard.grid(row=5, column=2, sticky=W)
 
-    read_url_b = Button(frame_entries, text="Read", command=lambda: read_url_clicked(app_log, url.get()), font=("Tahoma", 7))
+    read_url_b = Button(frame_entries, text="Read", command=lambda: read_url_clicked(url.get()), font=("Tahoma", 7))
     read_url_b.grid(row=5, column=3, sticky=W)
 
     data_insert_clipboard = Button(frame_entries_r, text="Paste", command=data_insert_r, font=("Tahoma", 7))
@@ -1792,7 +1795,7 @@ if __name__ == "__main__":
     gui_copy_url_r = Button(frame_entries_r, text="Copy", command=url_copy, font=("Tahoma", 7))
     gui_copy_url_r.grid(row=5, column=3, sticky=W)
 
-    create_url_b = Button(frame_entries_r, text="Create", command=lambda: create_url_clicked(app_log, "pay", gui_address_t.get(), amount_r.get(), operation_r.get(), openfield_r.get("1.0", END).strip()), font=("Tahoma", 7))
+    create_url_b = Button(frame_entries_r, text="Create", command=lambda: create_url_clicked(gui_address_t.get(), amount_r.get(), operation_r.get(), openfield_r.get("1.0", END).strip()), font=("Tahoma", 7))
     create_url_b.grid(row=5, column=2, sticky=W)
 
     gui_paste_address = Button(frame_entries_t, text="Paste", command=address_insert, font=("Tahoma", 7))
