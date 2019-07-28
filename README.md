@@ -21,7 +21,7 @@ Legacy Bismuth Wallet
     - CSV export
      
 
-![Thumbnail](graphics/thumb.png "Thumbnail")
+![Thumbnail](graphics/thumb.PNG "Thumbnail")
 
 See "releases" page for installers  
 https://github.com/bismuthfoundation/tk-wallet/releases
