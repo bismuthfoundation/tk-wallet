@@ -174,8 +174,8 @@ def read_url_clicked(url):
     operation.delete(0, END)
     openfield.delete("1.0", END)
 
-    recipient.insert(0, result['amount'])  # amount
-    amount.insert(0, result['recipient'])  # recipient
+    recipient.insert(0, result['recipient'])  # amount
+    amount.insert(0, result['amount'])  # recipient
 
     operation.insert(INSERT, result['operation'])  # operation
     openfield.insert(INSERT, result['openfield'])  # openfield
