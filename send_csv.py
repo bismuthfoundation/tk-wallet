@@ -34,9 +34,15 @@ parser = argparse.ArgumentParser(description='Bismuth Batch reward sender')
 # parser.add_argument("-v", "--verbose", action="count", default=False, help='Be verbose.')
 parser.add_argument("-y", "--yes", action="count", default=False, help='Do send')
 parser.add_argument("-w", "--wallet", help='Path to wallet, use quotation marks')
+parser.add_argument("-i", "--interval", help='Interval between txs')
 args = parser.parse_args()
 
 print(sys.argv[3])
+
+if not sys.argv[4]:
+    interval = 1
+else:
+    interval = sys.argv[4]
 
 total = 0
 nb = 0
@@ -55,7 +61,7 @@ for line in open('rewards.csv' , 'r'):
                 print(f"Check: {command}, didn't you forget the magic word?")
                 sys.exit(0)
             nb += 1
-            time.sleep(1)
+            time.sleep(interval)
         except Exception as e:
             print (e)
 
