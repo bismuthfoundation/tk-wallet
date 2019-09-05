@@ -38,7 +38,6 @@ from bisbasic import essentials, options
 from polysign.signerfactory import SignerFactory
 from bisbasic.quantizer import quantize_eight
 from tokensv2 import *
-from tokens_stealth import *
 
 #NEW
 from bismuthclient.bismuthclient import rpcconnections
