@@ -1355,10 +1355,6 @@ def click_on_tab_tokens(event):
     if str(wallet.nbtabs.index(wallet.nbtabs.select())) == "4":
         tokens()
 
-def click_on_tab_stealth_tokens(event):
-    if str(wallet.nbtabs.index(wallet.nbtabs.select())) == "5":
-        stealth_tokens()
-
 def themes(theme):
     # global photo_bg, photo_main
     global photo_main
@@ -1576,11 +1572,6 @@ if __name__ == "__main__":
     # tab5 tokens
     tab_tokens = ttk.Frame(wallet.nbtabs)
     wallet.nbtabs.add(tab_tokens, text='Tokens')
-    wallet.nbtabs.bind('<<NotebookTabChanged>>', click_on_tab_tokens)
-
-    # tab5 tokens
-    tab_stealth_tokens = ttk.Frame(wallet.nbtabs)
-    wallet.nbtabs.add(tab_stealth_tokens, text='Stealth Tokens')
     wallet.nbtabs.bind('<<NotebookTabChanged>>', click_on_tab_tokens)
 
     # canvas
