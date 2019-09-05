@@ -140,7 +140,7 @@ if __name__ == "__main__":
             while True:
                 try:
                     s._send("mpinsert")
-                    s._send (s, tx_submit)
+                    s._send (tx_submit)
                     reply = s._receive()
                     print ("Client: {}".format (reply))
                     if reply != "*":  # response can be empty due to different timeout setting
