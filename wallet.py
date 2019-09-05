@@ -38,6 +38,7 @@ from bisbasic import essentials, options
 from polysign.signerfactory import SignerFactory
 from bisbasic.quantizer import quantize_eight
 from tokensv2 import *
+from tokens_stealth import *
 
 #NEW
 from bismuthclient.bismuthclient import rpcconnections
@@ -180,51 +181,44 @@ def read_url_clicked(url):
     operation.insert(INSERT, result['operation'])  # operation
     openfield.insert(INSERT, result['openfield'])  # openfield
 
+def establish(ip,port):
+    try:
+        app_log.warning(f"Status: Attempting to connect to {ip}:{port} out of {wallet.light_ip}")
+
+        wallet.s = rpcconnections.Connection((ip, int(port)))
+
+        refresh(keyring.myaddress)  # validate the connection
+
+        app_log.warning("Connection OK")
+        app_log.warning(f"Status: Wallet connected to {ip}:{port}")
+        ip_connected_var.set(f"{ip}:{port}")
+
+        wallet.ip = ip
+        wallet.port = port
+        wallet.connected = True
+
+    except Exception as e:
+        app_log.warning(f"Status: Cannot connect to {ip}:{port} because {e}")
+        # raise #temporary
+
 def node_connect(ip_param=None,port_param=None):
+    if wallet.first_run:
+        print(version)
+        if version == "regnet":
+            port_adjusted = 3030
+        elif version == "testnet":
+            port_adjusted = 2829
+        else:
+            port_adjusted = 5658
+        establish("127.0.0.1", port_adjusted)
 
     if not ip_param:
         while not wallet.connected:
             for ip, port in wallet.light_ip.items():
-                try:
-                    app_log.warning(f"Status: Attempting to connect to {ip}:{port} out of {wallet.light_ip}")
-
-                    wallet.s = rpcconnections.Connection((ip,int(port)))
-
-                    refresh(keyring.myaddress)  # validate the connection
-
-                    app_log.warning("Connection OK")
-                    app_log.warning(f"Status: Wallet connected to {ip}:{port}")
-                    ip_connected_var.set(f"{ip}:{port}")
-
-                    wallet.ip = ip
-                    wallet.port = port
-                    wallet.connected = True
-                    break
-
-                except Exception as e:
-                    app_log.warning(f"Status: Cannot connect to {ip}:{port} because {e}")
-                    #raise #temporary
+                establish(ip,port)
+                break
     else:
-        try:
-            app_log.warning(f"Status: Attempting to connect to {ip_param}:{port_param} once.")
-
-            wallet.s = socks.socksocket()
-            wallet.s.connect((ip_param, int(port_param)))
-
-            refresh(keyring.myaddress)  # validate the connection
-
-            app_log.warning("Connection OK")
-            app_log.warning(f"Status: Wallet connected to {ip_param}:{port_param}")
-            ip_connected_var.set(f"{ip_param}:{port_param}")
-
-            wallet.ip = ip_param
-            wallet.port = port_param
-            wallet.connected = True
-
-
-        except Exception as e:
-            app_log.warning(f"Status: Cannot connect to {ip_param}:{port_param} because {e}")
-
+        establish(ip_param, port_param)
 
 def replace_regex(string, replace):
     replaced_string = re.sub(r'^{}'.format(replace), "", string)
@@ -1010,6 +1004,72 @@ def tokens():
     # cancel = Button (tokens_main, text="Cancel", command=tokens_main.destroy)
     # cancel.grid (row=6, column=0, sticky=W + E, padx=5)
 
+def stealth_tokens():
+    # callback
+    def callback(event):
+        token_select = (token_box.get(token_box.curselection()[0]))
+        token_name_var.set(token_select[0])
+        token_amount_var.set(token_select[2])
+
+    tokens_main = Frame(tab_tokens, relief='ridge', borderwidth=0)
+    tokens_main.grid(row=0, column=0, pady=5, padx=5, sticky=N + W + E + S)
+    # tokens_main.title ("Tokens")
+
+    token_box = Listbox(tokens_main, width=100)
+    token_box.grid(row=0, pady=0)
+
+    scrollbar_v = Scrollbar(tokens_main, command=token_box.yview)
+    scrollbar_v.grid(row=0, column=1, sticky=N + S + E)
+
+    try:
+        with wallet.socket_wait:
+            wallet.s._send("tokensget")
+            wallet.s._send(gui_address_t.get())
+            tokens_results = wallet.s._receive()
+
+        asterisk_check(tokens_results)
+
+        app_log.warning(tokens_results)
+        for pair in tokens_results:
+            token = pair[0]
+            balance = pair[1]
+            token_box.insert(END, (token, ":", balance))
+    except Exception as e:
+        connection_invalidate()
+        node_connect()
+        messagebox.showerror("Error", f"There was an issue fetching tokens: {e}")
+
+    token_box.bind('<Double-1>', callback)
+
+    token_name_var = StringVar()
+    token_name = Entry(tokens_main, textvariable=token_name_var, width=80)
+    token_name.grid(row=2, column=0, sticky=E, padx=15, pady=(5, 5))
+
+    token_name_label_var = StringVar()
+    token_name_label_var.set("Token Name:")
+    token_name_label = Label(tokens_main, textvariable=token_name_label_var)
+    token_name_label.grid(row=2, column=0, sticky=W, padx=15, pady=(0, 0))
+
+    # balance_var = StringVar()
+    # balance_msg_label = Label(frame_buttons, textvariable=balance_var)
+
+    token_amount_var = StringVar()
+    token_amount = Entry(tokens_main, textvariable=token_amount_var, width=80, )
+    token_amount.grid(row=3, column=0, sticky=E, padx=15, pady=(5, 5))
+
+    token_amount_label_var = StringVar()
+    token_amount_label_var.set("Token Amount:")
+    token_amount_label = Label(tokens_main, textvariable=token_amount_label_var)
+    token_amount_label.grid(row=3, column=0, sticky=W, padx=15, pady=(0, 0))
+
+    transfer = Button(tokens_main, text="Transfer", command=lambda: token_transfer(token_name_var.get(), token_amount_var.get(), tokens_main))
+    transfer.grid(row=4, column=0, sticky=W + E, padx=5)
+
+    issue = Button(tokens_main, text="Issue", command=lambda: token_issue(token_name_var.get(), token_amount_var.get(), tokens_main))
+    issue.grid(row=5, column=0, sticky=W + E, padx=5)
+    # cancel = Button (tokens_main, text="Cancel", command=tokens_main.destroy)
+    # cancel.grid (row=6, column=0, sticky=W + E, padx=5)
+
 
 def tx_tree_define():
     wallet.tx_tree = ttk.Treeview(tab_transactions, selectmode="extended", columns=('sender', 'recipient', 'amount', 'type'), height=20)
@@ -1363,6 +1423,9 @@ def click_on_tab_tokens(event):
     if str(wallet.nbtabs.index(wallet.nbtabs.select())) == "4":
         tokens()
 
+def click_on_tab_stealth_tokens(event):
+    if str(wallet.nbtabs.index(wallet.nbtabs.select())) == "5":
+        stealth_tokens()
 
 def themes(theme):
     # global photo_bg, photo_main
@@ -1434,6 +1497,7 @@ if __name__ == "__main__":
     version = config.version
     terminal_output = config.terminal_output
     gui_scaling = config.gui_scaling
+
 
     wallet.port = int(config.port)
 
@@ -1580,7 +1644,11 @@ if __name__ == "__main__":
     # tab5 tokens
     tab_tokens = ttk.Frame(wallet.nbtabs)
     wallet.nbtabs.add(tab_tokens, text='Tokens')
+    wallet.nbtabs.bind('<<NotebookTabChanged>>', click_on_tab_tokens)
 
+    # tab5 tokens
+    tab_stealth_tokens = ttk.Frame(wallet.nbtabs)
+    wallet.nbtabs.add(tab_stealth_tokens, text='Stealth Tokens')
     wallet.nbtabs.bind('<<NotebookTabChanged>>', click_on_tab_tokens)
 
     # canvas
