@@ -64,7 +64,7 @@ class Keys:
 
 
 # Wallet needs a version for itself
-__version__ = '0.8.8'
+__version__ = '0.8.9'
 
 
 class Wallet():
@@ -202,7 +202,6 @@ def establish(ip,port):
 
 def node_connect(ip_param=None,port_param=None):
     if wallet.first_run:
-        print(version)
         if version == "regnet":
             port_adjusted = 3030
         elif version == "testnet":
@@ -334,6 +333,13 @@ def keys_load_dialog():
 
     gui_address_t.delete(0, END)
     gui_address_t.insert(INSERT, keyring.myaddress)
+
+    credit_var.set("")
+    debit_var.set("")
+    fees_var.set("")
+    rewards_var.set("")
+    app_log.warning("")
+    balance_var.set("Please wait...")
 
     recipient_address.config(state=NORMAL)
     recipient_address.delete(0, END)
@@ -497,8 +503,8 @@ def lock_fn(button):
     lock_b.configure(text="Locked", state=DISABLED)
     messagemenu.entryconfig("Sign Messages", state=DISABLED)  # messages
     walletmenu.entryconfig("Recovery", state=DISABLED)  # recover
+    walletmenu.entryconfig("Decrypt Wallet", state=DISABLED)
     password_var_dec.set("")
-
 
 def encrypt_fn(destroy_this):
     password = password_var_enc.get()
@@ -545,7 +551,6 @@ def decrypt_get_password():
     cancel.grid(row=2, column=0, sticky=W + E, padx=15, pady=(5, 5))
     # enter password
 
-
 def decrypt_fn(destroy_this):
     busy(destroy_this)
     try:
@@ -560,6 +565,7 @@ def decrypt_fn(destroy_this):
         lock_b.configure(text="Lock", state=NORMAL)
         messagemenu.entryconfig("Sign Messages", state=NORMAL)  # messages
         walletmenu.entryconfig("Recovery", state=NORMAL)  # recover
+        walletmenu.entryconfig("Decrypt Wallet", state=NORMAL)
     except:
         notbusy(destroy_this)
         messagebox.showwarning("Locked", "Wrong password")
@@ -1003,6 +1009,12 @@ def tokens():
     # cancel = Button (tokens_main, text="Cancel", command=tokens_main.destroy)
     # cancel.grid (row=6, column=0, sticky=W + E, padx=5)
 
+def decrypt_wallet():
+    keys_save(keyring.key.exportKey().decode("utf-8"), keyring.public_key_readable, keyring.myaddress, keyring.keyfile)
+    keyring.key, keyring.public_key_readable, keyring.private_key_readable, keyring.encrypted, keyring.unlocked, keyring.public_key_b64encoded, keyring.myaddress, keyring.keyfile = keys_load_new(keyring.keyfile.name)
+    encryption_button_refresh()
+
+
 def tx_tree_define():
     wallet.tx_tree = ttk.Treeview(tab_transactions, selectmode="extended", columns=('sender', 'recipient', 'amount', 'type'), height=20)
     wallet.tx_tree.grid(row=1, column=0)
@@ -1384,8 +1396,9 @@ def encryption_button_refresh():
         decrypt_b.configure(text="Unlocked", state=DISABLED)
     if not keyring.unlocked:
         decrypt_b.configure(text="Unlock", state=NORMAL)
-        messagemenu.entryconfig("Sign Messages", state="disabled")  # messages
-        walletmenu.entryconfig("Recovery", state="disabled")  # recover
+        messagemenu.entryconfig("Sign Messages", state=DISABLED)  # messages
+        walletmenu.entryconfig("Recovery", state=DISABLED)  # recover
+        walletmenu.entryconfig("Decrypt Wallet", state=DISABLED)
     if not keyring.encrypted:
         encrypt_b.configure(text="Encrypt", state=NORMAL)
     if keyring.encrypted:
@@ -1578,9 +1591,10 @@ if __name__ == "__main__":
     menubar = Menu(root)
     walletmenu = Menu(menubar, tearoff=0)
     menubar.add_cascade(label="Wallet", menu=walletmenu)
-    walletmenu.add_command(label="Load Wallet...", command=keys_load_dialog)
-    walletmenu.add_command(label="Backup Wallet...", command=keys_backup)
-    walletmenu.add_command(label="Encrypt Wallet...", command=encrypt_get_password)
+    walletmenu.add_command(label="Load Wallet", command=keys_load_dialog)
+    walletmenu.add_command(label="Backup Wallet", command=keys_backup)
+    walletmenu.add_command(label="Encrypt Wallet", command=encrypt_get_password)
+    walletmenu.add_command(label=f"Decrypt Wallet", command=decrypt_wallet)
     walletmenu.add_separator()
     walletmenu.add_command(label="Recovery", command=recover)
     walletmenu.add_separator()
