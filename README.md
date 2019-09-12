@@ -10,7 +10,7 @@ Legacy Bismuth Wallet
     - Bismuth payment URLs
     - Token issuance and transfers
     - Transaction history
-    - Wallet Encryption
+    - Wallet Encryption / Decryption
     - Operations and on-chain data saving
     - Alias registration and usage
     - Custom connectivity
