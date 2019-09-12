@@ -44,6 +44,7 @@ from bismuthclient.bismuthclient import rpcconnections
 from bismuthclient import bismuthutil
 from bismuthclient.simplecrypt import encrypt, decrypt
 from bismuthclient.bismuthcrypto import keys_check, keys_load, keys_load_new, keys_save
+from bismuthclient import bismuthmultiwallet
 
 bismuth_util = bismuthutil.BismuthUtil()
 
@@ -683,13 +684,13 @@ def send(amount_input, recipient_input, operation_input, openfield_input):
         signature = signer.sign(h)
         signature_enc = base64.b64encode(signature)
         app_log.warning(f"Client: Encoded Signature: {signature_enc.decode('utf-8')}")
-
         verifier = PKCS1_v1_5.new(keyring.key)
 
         if verifier.verify(h, signature):
             app_log.warning("Client: The signature is valid, proceeding to save transaction, signature, new txhash and the public key to mempool")
             # app_log.warning(str(timestamp), str(address), str(recipient_input), '%.8f' % float(amount_input),str(signature_enc), str(public_key_b64encoded), str(keep_input), str(openfield_input))
             tx_submit = str(tx_timestamp), str(keyring.myaddress), str(recipient_input), '%.8f' % float(amount_input), str(signature_enc.decode("utf-8")), str(keyring.public_key_b64encoded.decode("utf-8")), str(operation_input), str(openfield_input)  # float kept for compatibility
+
             try:
 
                 with wallet.socket_wait:
@@ -1422,6 +1423,7 @@ if __name__ == "__main__":
     wallet = Wallet()
     #statistics = Statistics()
 
+
     if os.path.exists("privkey.der"):
         private_key_load = "privkey.der"
     else:
@@ -1446,13 +1448,11 @@ if __name__ == "__main__":
 
     app_log.warning(f"Protocol versoion: {version}")
 
-    # upgrade wallet location after nuitka-required "files" folder introduction
-    if os.path.exists("../wallet.der") and not os.path.exists("wallet.der") and "Windows" in platform.system():
-        app_log.warning("Upgrading wallet location")
-        os.rename("../wallet.der", "wallet.der")
-    # upgrade wallet location after nuitka-required "files" folder introduction
-
     keys_check(app_log, "wallet.der")
+
+    #wallet_modern = bismuthmultiwallet.BismuthMultiWallet()
+    #if not os.path.exists("wallet.json"):
+    #    wallet_modern.import_der()
 
     keyring.key, keyring.public_key_readable, keyring.private_key_readable, keyring.encrypted, keyring.unlocked, keyring.public_key_b64encoded, keyring.myaddress, keyring.keyfile = keys_load(private_key_load, public_key_load)
     app_log.warning(f"Keyfile: {keyring.keyfile}")
