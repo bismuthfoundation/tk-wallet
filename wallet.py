@@ -1457,7 +1457,6 @@ if __name__ == "__main__":
     keyring.key, keyring.public_key_readable, keyring.private_key_readable, keyring.encrypted, keyring.unlocked, keyring.public_key_b64encoded, keyring.myaddress, keyring.keyfile = keys_load(private_key_load, public_key_load)
     app_log.warning(f"Keyfile: {keyring.keyfile}")
 
-
     try:
         suggested_wallet_servers = requests.get("http://api.bismuth.live/servers/wallet/legacy.json")
         if suggested_wallet_servers.status_code == 200:
