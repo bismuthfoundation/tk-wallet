@@ -298,7 +298,10 @@ def all_spend_check():
 
         fee_from_all = essentials.fee_calculate(openfield_fee_calc)
         amount.delete(0, END)
-        amount.insert(0, (Decimal(balance_raw.get()) - Decimal(fee_from_all)))
+        amount_to_insert = Decimal(balance_raw.get()) - Decimal(fee_from_all)
+        if amount_to_insert < 0:
+            amount_to_insert = 0
+        amount.insert(0, (amount_to_insert))
 
 
 def fingerprint():
