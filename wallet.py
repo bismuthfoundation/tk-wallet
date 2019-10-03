@@ -91,6 +91,13 @@ class Wallet():
         self.connected = False
         self.protocol = None
 
+        self.height_main = None
+        self.height_root = None
+        self.width_main = None
+        self.width_root = None
+
+        self.connecting = False
+
 def mempool_clear(s):
     wallet.s._send(s, "mpclear")
 
@@ -196,12 +203,14 @@ def establish(ip,port):
         wallet.ip = ip
         wallet.port = port
         wallet.connected = True
+        wallet.first_run = False
 
     except Exception as e:
         app_log.warning(f"Status: Cannot connect to {ip}:{port} because {e}")
-        # raise #temporary
+        #raise #temporary
 
 def node_connect(ip_param=None,port_param=None):
+    wallet.connecting = True
     if wallet.first_run:
         if version == "regnet":
             port_adjusted = 3030
@@ -215,9 +224,11 @@ def node_connect(ip_param=None,port_param=None):
         while not wallet.connected:
             for ip, port in wallet.light_ip.items():
                 establish(ip,port)
-                break
     else:
         establish(ip_param, port_param)
+    wallet.connecting = False
+
+
 
 def replace_regex(string, replace):
     replaced_string = re.sub(r'^{}'.format(replace), "", string)
@@ -1018,6 +1029,11 @@ def decrypt_wallet():
     keyring.key, keyring.public_key_readable, keyring.private_key_readable, keyring.encrypted, keyring.unlocked, keyring.public_key_b64encoded, keyring.myaddress, keyring.keyfile = keys_load_new(keyring.keyfile.name)
     encryption_button_refresh()
 
+def on_tree_select(event):
+    print("selected items:")
+    for item in wallet.tx_tree.selection():
+        item_text = wallet.tx_tree.item(item,"text")
+        print(item_text)
 
 def tx_tree_define():
     wallet.tx_tree = ttk.Treeview(tab_transactions, selectmode="extended", columns=('sender', 'recipient', 'amount', 'type'), height=20)
@@ -1025,22 +1041,23 @@ def tx_tree_define():
 
     # table
     wallet.tx_tree.heading("#0", text='time')
-    wallet.tx_tree.column("#0", anchor='center', width=100)
+    wallet.tx_tree.column("#0", anchor='center')
 
     wallet.tx_tree.heading("#1", text='sender')
-    wallet.tx_tree.column("#1", anchor='center', width=347)
+    wallet.tx_tree.column("#1", anchor='center')
 
     wallet.tx_tree.heading("#2", text='recipient')
-    wallet.tx_tree.column("#2", anchor='center', width=347)
+    wallet.tx_tree.column("#2", anchor='center')
 
     wallet.tx_tree.heading("#3", text='amount')
-    wallet.tx_tree.column("#3", anchor='center', width=35)
+    wallet.tx_tree.column("#3", anchor='center')
 
     wallet.tx_tree.heading("#4", text='type')
-    wallet.tx_tree.column("#4", anchor='center', width=40)
+    wallet.tx_tree.column("#4", anchor='center')
 
     wallet.tx_tree.grid(sticky=N + S + W + E)
 
+    wallet.tx_tree.bind("<<TreeviewSelect>>", on_tree_select)
 
 def table(address, addlist_20, mempool_total):
     # transaction table
@@ -1224,15 +1241,15 @@ def refresh(address):
 
         # canvas bg
         root.update()
-        width_root = root.winfo_width()
-        height_root = root.winfo_height()
+        wallet.width_root = root.winfo_width()
+        wallet.height_root = root.winfo_height()
 
         # frame_main.update()
-        width_main = tab_main.winfo_width()
-        height_main = tab_main.winfo_height()
+        wallet.width_main = tab_main.winfo_width()
+        wallet.height_main = tab_main.winfo_height()
 
-        canvas_main.configure(width=width_main, height=height_main)
-        # photo_main.resize (width_main,height_main)
+        canvas_main.configure(width=wallet.width_main, height=wallet.height_main)
+        # photo_main.resize (wallet.width_main,wallet.height_main)
 
         # canvas bg
 
@@ -1241,7 +1258,8 @@ def refresh(address):
     except Exception as e:
         #raise #temporary
 
-        node_connect()
+        if not wallet.connecting:
+            node_connect()
         app_log.warning(e)
         connection_invalidate()
 
@@ -1383,10 +1401,10 @@ def themes(theme):
         # photo_bg = PIL.ImageTk.PhotoImage (img_bg)
         # canvas_bg.create_image (0, 0, image=photo_bg, anchor=NW)
 
-        width_main = tab_main.winfo_width()
-        height_main = tab_main.winfo_height()
+        wallet.width_main = tab_main.winfo_width()
+        wallet.height_main = tab_main.winfo_height()
 
-        main_bg = PIL.Image.open("themes/{}.jpg".format(theme)).resize((width_main, height_main), PIL.Image.ANTIALIAS)
+        main_bg = PIL.Image.open("themes/{}.jpg".format(theme)).resize((wallet.width_main, wallet.height_main), PIL.Image.ANTIALIAS)
         photo_main = PIL.ImageTk.PhotoImage(main_bg)
         canvas_main.create_image(0, 0, image=photo_main, anchor=NW)
 
@@ -1530,6 +1548,7 @@ if __name__ == "__main__":
 
     # tab_transactions transactions
     tab_transactions = ttk.Frame(wallet.nbtabs)
+
 
     wallet.nbtabs.add(tab_transactions, text='History')
 
