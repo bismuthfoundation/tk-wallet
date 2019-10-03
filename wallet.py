@@ -1029,11 +1029,10 @@ def decrypt_wallet():
     keyring.key, keyring.public_key_readable, keyring.private_key_readable, keyring.encrypted, keyring.unlocked, keyring.public_key_b64encoded, keyring.myaddress, keyring.keyfile = keys_load_new(keyring.keyfile.name)
     encryption_button_refresh()
 
-def on_tree_select(event):
-    print("selected items:")
-    for item in wallet.tx_tree.selection():
-        item_text = wallet.tx_tree.item(item,"text")
-        print(item_text)
+def selectItem(event):
+    curItem = wallet.tx_tree.focus()
+    print(wallet.tx_tree.item(curItem))
+    root.clipboard_append(wallet.tx_tree.item(curItem))
 
 def tx_tree_define():
     wallet.tx_tree = ttk.Treeview(tab_transactions, selectmode="extended", columns=('sender', 'recipient', 'amount', 'type'), height=20)
@@ -1057,7 +1056,7 @@ def tx_tree_define():
 
     wallet.tx_tree.grid(sticky=N + S + W + E)
 
-    wallet.tx_tree.bind("<<TreeviewSelect>>", on_tree_select)
+    wallet.tx_tree.bind('<Button-1>', selectItem)
 
 def table(address, addlist_20, mempool_total):
     # transaction table
