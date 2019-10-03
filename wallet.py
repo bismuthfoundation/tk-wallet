@@ -1334,6 +1334,9 @@ def hyperlink_BE():
     url = "https://bismuth.online"
     webbrowser.open(url, new=1)
 
+def hyperlink_blog():
+    url = "https://hypernodes.bismuth.live/?page_id=20"
+    webbrowser.open(url, new=1)
 
 def hyperlink_BISGit():
     url = "https://github.com/bismuthfoundation/Bismuth/releases"
@@ -1426,6 +1429,7 @@ def encryption_button_refresh():
     if keyring.encrypted:
         encrypt_b.configure(text="Encrypted", state=DISABLED)
     lock_b.configure(text="Lock", state=DISABLED)
+    resolve_var.set(False)
 
 
 def busy(an_item=None):
@@ -1836,6 +1840,9 @@ if __name__ == "__main__":
     gui_unwatch.grid(row=0, column=4, sticky=W, padx=(0, 5))
 
     # hyperlinks
+    hyperlink_blog = Button(frame_hyperlinks, text="Github Repository", command=hyperlink_blog, font=("Tahoma", 7))
+    hyperlink_blog.grid(row=0, column=0, sticky=N + E + S + W, padx=1, pady=1)
+
     hyperlink_BISGit = Button(frame_hyperlinks, text="Github Repository", command=hyperlink_BISGit, font=("Tahoma", 7))
     hyperlink_BISGit.grid(row=0, column=0, sticky=N + E + S + W, padx=1, pady=1)
 
