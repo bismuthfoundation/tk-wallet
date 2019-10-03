@@ -98,8 +98,8 @@ class Wallet():
 
         self.connecting = False
 
-def mempool_clear(s):
-    wallet.s._send(s, "mpclear")
+def mempool_clear():
+    wallet.s._send("mpclear")
 
 
 def connection_invalidate():
@@ -919,9 +919,9 @@ def refresh_auto():
 def csv_export(s):
 
     with wallet.socket_wait:
-        wallet.s._send(s, "addlist")  # senders
-        wallet.s._send(s, keyring.myaddress)
-        tx_list = wallet.s._receive(s, )
+        wallet.s._send("addlist")  # senders
+        wallet.s._send(keyring.myaddress)
+        tx_list = wallet.s._receive()
 
     asterisk_check(tx_list)
     app_log.warning(tx_list)
