@@ -1404,7 +1404,8 @@ def themes(theme):
         wallet.width_main = tab_main.winfo_width()
         wallet.height_main = tab_main.winfo_height()
 
-        main_bg = PIL.Image.open("themes/{}.jpg".format(theme)).resize((wallet.width_main, wallet.height_main), PIL.Image.ANTIALIAS)
+        #main_bg = PIL.Image.open("themes/{}.jpg".format(theme)).resize((wallet.width_main, wallet.height_main), PIL.Image.ANTIALIAS)
+        main_bg = PIL.Image.open("themes/{}.jpg".format(theme))
         photo_main = PIL.ImageTk.PhotoImage(main_bg)
         canvas_main.create_image(0, 0, image=photo_main, anchor=NW)
 
@@ -1835,16 +1836,16 @@ if __name__ == "__main__":
     gui_unwatch.grid(row=0, column=4, sticky=W, padx=(0, 5))
 
     # hyperlinks
-    hyperlink_BISGit = Button(frame_hyperlinks, text="Bismuth@Github", command=hyperlink_BISGit, font=("Tahoma", 7))
+    hyperlink_BISGit = Button(frame_hyperlinks, text="Github Repository", command=hyperlink_BISGit, font=("Tahoma", 7))
     hyperlink_BISGit.grid(row=0, column=0, sticky=N + E + S + W, padx=1, pady=1)
 
-    hyperlink_BE = Button(frame_hyperlinks, text="Official Block Explorer", command=hyperlink_BE, font=("Tahoma", 7))
+    hyperlink_BE = Button(frame_hyperlinks, text="Blockchain Explorer", command=hyperlink_BE, font=("Tahoma", 7))
     hyperlink_BE.grid(row=1, column=0, sticky=N + E + S + W, padx=1, pady=1)
 
-    hyperlink_howto = Button(frame_hyperlinks, text="HowTos@Github", command=hyperlink_howto, font=("Tahoma", 7))
+    hyperlink_howto = Button(frame_hyperlinks, text="Guides", command=hyperlink_howto, font=("Tahoma", 7))
     hyperlink_howto.grid(row=2, column=0, sticky=N + E + S + W, padx=1, pady=1)
 
-    hyperlink_bct = Button(frame_hyperlinks, text="BIS@Bitcointalk", command=hyperlink_bct, font=("Tahoma", 7))
+    hyperlink_bct = Button(frame_hyperlinks, text="Bitcointalk", command=hyperlink_bct, font=("Tahoma", 7))
     hyperlink_bct.grid(row=3, column=0, sticky=N + E + S + W, padx=1, pady=1)
     # hyperlinks
 
