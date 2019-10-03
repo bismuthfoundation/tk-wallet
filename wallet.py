@@ -1174,7 +1174,6 @@ def refresh(address):
         hash_last = block_get[7]
         hash_var.set("Hash: {}...".format(hash_last[:6]))
 
-
         # check difficulty
 
         with wallet.socket_wait:
@@ -1477,6 +1476,7 @@ if __name__ == "__main__":
     app_log.warning(f"Connecting to {wallet.light_ip}")
 
     root = Tk()
+    root.resizable(width=False, height=False)
 
     root.wm_title(f"Bismuth Light Wallet - v{__version__}")
     # root.geometry("1310x700") #You want the size of the app to be 500x500
