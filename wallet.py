@@ -221,8 +221,8 @@ def node_connect(ip_param=None,port_param=None):
         establish("127.0.0.1", port_adjusted)
 
     if not ip_param:
-        while not wallet.connected:
-            for ip, port in wallet.light_ip.items():
+        for ip, port in wallet.light_ip.items():
+            while not wallet.connected:
                 establish(ip,port)
     else:
         establish(ip_param, port_param)
