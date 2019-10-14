@@ -1791,7 +1791,7 @@ if __name__ == "__main__":
     hyperlink_bct = Button(frame_hyperlinks, text="Bitcointalk", command=lambda: webbrowser.open("https://bitcointalk.org/index.php?topic=1896497.0", new=1), font=("Tahoma", 7))
     hyperlink_bct.grid(row=3, column=0, sticky=N + E + S + W, padx=1, pady=1)
 
-    hyperlink_tornado = Button(frame_hyperlinks, text="Tornado wallet", fg="red", command=lambda: webbrowser.open("https://github.com/bismuthfoundation/TornadoWallet/releases", new=1), font=("Tahoma", 7))
+    hyperlink_tornado = Button(frame_hyperlinks, text="Tornado Wallet", fg="red", command=lambda: webbrowser.open("https://github.com/bismuthfoundation/TornadoWallet/releases", new=1), font=("Tahoma", 7))
     hyperlink_tornado.grid(row=4, column=0, sticky=N + E + S + W, padx=1, pady=1)
     # hyperlinks
 
