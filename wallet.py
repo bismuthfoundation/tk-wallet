@@ -1323,69 +1323,6 @@ def sign():
     dismiss.grid(row=8, column=0, sticky=W + E, padx=15, pady=(15, 5))
     # popup
 
-
-def hyperlink_howto():
-    url = "https://github.com/EggPool/BismuthHowto"
-    webbrowser.open(url, new=1)
-
-
-def hyperlink_BE():
-    url = "https://bismuth.online"
-    webbrowser.open(url, new=1)
-
-def hyperlink_blog():
-    url = "https://hypernodes.bismuth.live/?page_id=20"
-    webbrowser.open(url, new=1)
-
-def hyperlink_BISGit():
-    url = "https://github.com/bismuthfoundation/Bismuth/releases"
-    webbrowser.open(url, new=1)
-
-
-def hyperlink_bct():
-    url = "https://bitcointalk.org/index.php?topic=1896497.0"
-    webbrowser.open(url, new=1)
-
-
-def support_collection():
-    sup_col = Toplevel()
-    sup_col.title("Collection of Basic Information")
-    collection_box = Text(sup_col, width=100)
-    collection_box.grid(row=0, pady=0)
-
-    version = wallet.statusget[7]
-    stats_timestamp = wallet.statusget[9]
-
-    with wallet.socket_wait:
-        wallet.s._send("blocklast")
-        block_get = wallet.s._receive()
-
-    asterisk_check(block_get)
-    bl_height = block_get[0]
-
-    with wallet.socket_wait:
-        wallet.s._send("blocklast")
-        blocklast = wallet.s._receive()
-
-    asterisk_check(blocklast)
-    db_timestamp_last = blocklast[1]
-    time_now = float(time.time())
-    last_block_ago = int(time_now - db_timestamp_last)
-
-    collection_box.config(wrap=WORD)
-    collection_box.insert(INSERT, "If you have questions or want to report a problem, please copy the information below to provide it.")
-    collection_box.insert(INSERT, "\n\n")
-    collection_box.insert(INSERT, "Your OS: {} {}".format(platform.system(), platform.release()))
-    collection_box.insert(INSERT, "\nNode Version: {}".format(version))
-    collection_box.insert(INSERT, "\nConnected to: {}".format(wallet.ip))
-    collection_box.insert(INSERT, "\nLast Block: {}".format(bl_height))
-    collection_box.insert(INSERT, "\nSeconds since Last Block: {}".format(last_block_ago))
-    collection_box.insert(INSERT, "\nNode GMT: {}".format(time.strftime("%H:%M:%S", time.gmtime(int(float(stats_timestamp))))))
-
-    close = Button(sup_col, text="Close", command=sup_col.destroy)
-    close.grid(row=3, column=0, sticky=W + E)
-
-
 def click_on_tab_tokens(event):
     if str(wallet.nbtabs.index(wallet.nbtabs.select())) == "4":
         tokens()
@@ -1839,20 +1776,23 @@ if __name__ == "__main__":
     gui_unwatch.grid(row=0, column=4, sticky=W, padx=(0, 5))
 
     # hyperlinks
-    hyperlink_blog = Button(frame_hyperlinks, text="Github Repository", command=hyperlink_blog, font=("Tahoma", 7))
+    hyperlink_blog = Button(frame_hyperlinks, text="Github Repository", command=lambda: webbrowser.open("https://hypernodes.bismuth.live/?page_id=20", new=1), font=("Tahoma", 7))
     hyperlink_blog.grid(row=0, column=0, sticky=N + E + S + W, padx=1, pady=1)
 
-    hyperlink_BISGit = Button(frame_hyperlinks, text="Github Repository", command=hyperlink_BISGit, font=("Tahoma", 7))
+    hyperlink_BISGit = Button(frame_hyperlinks, text="Github Repository", command=lambda: webbrowser.open("https://github.com/bismuthfoundation/Bismuth/releases", new=1), font=("Tahoma", 7))
     hyperlink_BISGit.grid(row=0, column=0, sticky=N + E + S + W, padx=1, pady=1)
 
-    hyperlink_BE = Button(frame_hyperlinks, text="Blockchain Explorer", command=hyperlink_BE, font=("Tahoma", 7))
+    hyperlink_BE = Button(frame_hyperlinks, text="Blockchain Explorer", command=lambda: webbrowser.open("https://bismuth.online", new=1), font=("Tahoma", 7))
     hyperlink_BE.grid(row=1, column=0, sticky=N + E + S + W, padx=1, pady=1)
 
-    hyperlink_howto = Button(frame_hyperlinks, text="Guides", command=hyperlink_howto, font=("Tahoma", 7))
+    hyperlink_howto = Button(frame_hyperlinks, text="Guides", command=lambda: webbrowser.open("https://github.com/EggPool/BismuthHowto", new=1), font=("Tahoma", 7))
     hyperlink_howto.grid(row=2, column=0, sticky=N + E + S + W, padx=1, pady=1)
 
-    hyperlink_bct = Button(frame_hyperlinks, text="Bitcointalk", command=hyperlink_bct, font=("Tahoma", 7))
+    hyperlink_bct = Button(frame_hyperlinks, text="Bitcointalk", command=lambda: webbrowser.open("https://bitcointalk.org/index.php?topic=1896497.0", new=1), font=("Tahoma", 7))
     hyperlink_bct.grid(row=3, column=0, sticky=N + E + S + W, padx=1, pady=1)
+
+    hyperlink_tornado = Button(frame_hyperlinks, text="Tornado wallet", fg="red", command=lambda: webbrowser.open("https://github.com/bismuthfoundation/TornadoWallet/releases", new=1), font=("Tahoma", 7))
+    hyperlink_tornado.grid(row=4, column=0, sticky=N + E + S + W, padx=1, pady=1)
     # hyperlinks
 
     # supportbutton
