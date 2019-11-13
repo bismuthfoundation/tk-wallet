@@ -5,6 +5,7 @@ import ast
 import csv
 import glob
 import os
+import random
 import platform
 import re
 import tarfile
@@ -209,6 +210,12 @@ def establish(ip,port):
         app_log.warning(f"Status: Cannot connect to {ip}:{port} because {e}")
         #raise #temporary
 
+
+def dict_shuffle(dictinary):
+    l = list(dictinary.items())
+    random.shuffle(l)
+    return dict(l)
+
 def node_connect(ip_param=None,port_param=None):
     wallet.connecting = True
     if wallet.first_run:
@@ -221,7 +228,8 @@ def node_connect(ip_param=None,port_param=None):
         establish("127.0.0.1", port_adjusted)
 
     if not ip_param:
-        for ip, port in wallet.light_ip.items():
+        print(wallet.light_ip)
+        for ip, port in dict_shuffle(wallet.light_ip).items():
             while not wallet.connected:
                 establish(ip,port)
     else:
