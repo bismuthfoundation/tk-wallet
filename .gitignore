@@ -12,9 +12,6 @@ workspace/
 *.log.*
 node.log.*
 wallet.log.*
-privkey.der
-pubkey.der
-wallet.der
 address.txt
 mempool.db
 ledger.db
@@ -26,3 +23,4 @@ heavy3a.bin
 /theme
 config_custom.txt
 sequencing_last
+*.der
