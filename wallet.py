@@ -147,7 +147,7 @@ def mempool_get(s):
         for tx in wallet.mempool_total:
             mp_tree.insert('', 'end', text=datetime.fromtimestamp(float(tx[0])).strftime('%y-%m-%d %H:%M'), values=(tx[1], tx[2], tx[3]))
 
-        clear_mempool_b = Button(mempool_window, text="Clear Mempool", command=lambda: mempool_clear(s), height=1, width=20, font=("Tahoma", 8))
+        clear_mempool_b = Button(mempool_window, text="Clear Mempool", command=lambda: mempool_clear(), height=1, width=20, font=("Tahoma", 8))
         clear_mempool_b.grid(row=1, column=0, sticky=N + S + W + E)
         close_mempool_b = Button(mempool_window, text="Close", command=lambda: mempool_window.destroy(), height=1, width=20, font=("Tahoma", 8))
         close_mempool_b.grid(row=2, column=0, sticky=N + S + W + E)
