@@ -2,7 +2,13 @@ import subprocess
 import os
 import json
 import glob
+import platform
 
+def is_windows():
+    if "Windows" in platform.system():
+        return True
+    else:
+        return False
 
 def init():
     command_line = "ipfs init"
@@ -37,8 +43,8 @@ def get(hash, filename):
     return result
 
 def show_all():
-    if os.path.exists("stored"):
-        found = glob.glob("stored/*")
+    if os.path.exists("references"):
+        found = glob.glob("references/*")
 
         for entry in found:
             with open(entry) as infile:
@@ -46,16 +52,25 @@ def show_all():
                 yield (contents)
 
 
-def seek_local(file):
-    if os.path.exists("stored"):
-        with open(f"stored/{file}.json") as infile:
+def seek_local_hash(hash):
+    if os.path.exists("references"):
+        with open(f"references/{hash}.json") as infile:
             return json.loads(infile.read())
 
-def save(data):
-    if not os.path.exists("stored"):
-        os.mkdir("stored")
+def seek_local_file(file):
+    if os.path.exists("references"):
+        found = glob.glob("references/*")
+        for entry in found:
+            with open(entry) as infile:
+                contents = json.loads(infile.read())
+                if contents["filename"] == file:
+                    return os.path.basename(entry)
 
-    with open(f'stored/{data["hash"]}.json', "w") as infile:
+def save_local(data):
+    if not os.path.exists("references"):
+        os.mkdir("references")
+
+    with open(f'references/{data["hash"]}.json', "w") as infile:
         infile.write(json.dumps(data))
 
 
@@ -63,11 +78,14 @@ if __name__ == "__main__":
     print(init())
     store = store("test.txt")
     print(store)
-    save(store)
+    save_local(store)
 
     for entry in show_all():
         print(entry)
 
-    print(seek_local("QmWfVY9y3xjsixTgbd9AorQxH7VtMpzfx2HaWtsoUYecaX"))
+    print(seek_local_file("test.txt"))
 
-    get("QmWfVY9y3xjsixTgbd9AorQxH7VtMpzfx2HaWtsoUYecaX", "test.txt")
+    sought = seek_local_hash("QmWfVY9y3xjsixTgbd9AorQxH7VtMpzfx2HaWtsoUYecaX")
+    print(sought)
+
+    get(sought["hash"], sought["filename"])
