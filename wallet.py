@@ -1599,6 +1599,10 @@ if __name__ == "__main__":
         return result
 
     def ipfs_to_bis():
+        if not ipfs_output_op.get():
+            messagebox.showinfo("Not uploaded", "You need to upload your file first")
+            return
+
         wallet.nbtabs.select(tab_send)
 
         recipient.delete(0, END)
