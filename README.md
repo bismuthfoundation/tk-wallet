@@ -1,6 +1,10 @@
 # tk-wallet
 Legacy Bismuth Wallet
 
+Code of the wallet is not very well organized. 
+Most of it is sequential and very plain, although some classes and functions were added later. Testing and bug reports have made it quite stable and reliable.
+If you are looking for a better experience, I strongly suggest you give the [Tornado wallet](https://github.com/bismuthfoundation/TornadoWallet) a try.
+
 - The original wallet for Bismuth
 - Supports:
     - Transactions
