@@ -1,3 +1,5 @@
+#  offline mode of ipfs, no daemon, cli access
+
 import subprocess
 import os
 import json
@@ -11,16 +13,23 @@ def is_windows():
         return False
 
 def init():
+    acceptable = ["Error: ipfs configuration file already exists!", "initializing IPFS node at"]
+
     command_line = "ipfs init"
     pipe = subprocess.Popen(command_line, shell=True, stdout=subprocess.PIPE).stdout
     output = pipe.read().decode()
     pipe.close()
 
-    return output
+    for entry in acceptable:
+        if entry in output:
+            return output
+    else:
+        return False
 
 
 def store(file):
     command_line = f"ipfs add {file}"
+    print(command_line)
     pipe = subprocess.Popen(command_line, shell=True, stdout=subprocess.PIPE).stdout
     output = pipe.read().decode()
     pipe.close()

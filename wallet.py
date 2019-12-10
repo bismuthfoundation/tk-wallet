@@ -12,6 +12,7 @@ import tarfile
 import threading
 import time
 import webbrowser
+from ipfs import ipfs
 import base64
 import hashlib
 from datetime import datetime
@@ -66,7 +67,7 @@ class Keys:
 
 
 # Wallet needs a version for itself
-__version__ = '0.9.0'
+__version__ = '0.9.1'
 
 
 class Wallet():
@@ -333,7 +334,6 @@ def fingerprint():
     openfield.insert(INSERT, dict)
     wallet.nbtabs.select(tab_send)
 
-
 def keys_untar(archive):
     with open(archive, "r") as archive_file:
         tar = tarfile.open(archive_file.name)
@@ -362,7 +362,7 @@ def keys_load_dialog():
     fees_var.set("")
     rewards_var.set("")
     app_log.warning("")
-    balance_var.set("Please wait...")
+    balance_var.set("Loading stats...")
 
     recipient_address.config(state=NORMAL)
     recipient_address.delete(0, END)
@@ -1557,6 +1557,123 @@ if __name__ == "__main__":
     wallet.nbtabs.add(tab_tokens, text='Tokens')
     wallet.nbtabs.bind('<<NotebookTabChanged>>', click_on_tab_tokens)
 
+
+    # tab6 ipfs
+    def check_ipfs():
+        returned = ipfs.init()
+        if returned:
+            messagebox.showinfo("OK", f"IPFS initialized properly: {returned}")
+        else:
+            messagebox.showerror("Error", "You need to install IPFS to the wallet directory first")
+
+    def ipfs_upload(ipfs_output_op, ipfs_output_hash, ipfs_output_file, ipfs_fingerprint):
+        ipfs_file = filedialog.askopenfilename(initialdir="", title="Select file to upload")
+
+        ipfs_output_hash.configure(state="normal")
+        ipfs_output_file.configure(state="normal")
+        ipfs_output_op.configure(state="normal")
+        ipfs_fingerprint.configure(state="normal")
+
+        result = ipfs.store(ipfs_file)
+        print(result)
+
+        ipfs_output_op.delete(0, END)
+        ipfs_output_hash.delete(0, END)
+        ipfs_output_file.delete(0, END)
+        ipfs_fingerprint.delete(0, END)
+
+        ipfs_output_op.insert(0, result["operation"])
+        ipfs_output_hash.insert(0, result["hash"])
+        ipfs_output_file.insert(0, result["filename"])
+
+        with open(ipfs_file, 'rb') as fp:
+            data = hashlib.blake2b(fp.read()).hexdigest()
+            ipfs_fingerprint.insert(0, data)
+
+        ipfs_output_hash.configure(state="readonly")
+        ipfs_output_file.configure(state="readonly")
+        ipfs_output_op.configure(state="readonly")
+        ipfs_fingerprint.configure(state="readonly")
+
+        return result
+
+    def ipfs_to_bis():
+        wallet.nbtabs.select(tab_send)
+
+        recipient.delete(0, END)
+        amount.delete(0, END)
+        operation.delete(0, END)
+        openfield.delete("1.0", END)
+
+        recipient.insert(0, keyring.myaddress)  # amount
+        amount.insert(0, 0)  # recipient
+
+        operation.insert(INSERT, "ipfs")  # operation
+        openfield.insert(INSERT, f"operation={ipfs_output_op.get()},"
+                                 f"hash={ipfs_output_hash.get()},"
+                                 f"filename={ipfs_output_file.get()},"
+                                 f"fingerprint={ipfs_fingerprint.get()}")  # openfield
+
+    tab_ipfs = ttk.Frame(wallet.nbtabs)
+
+    wallet.nbtabs.add(tab_ipfs, text='IPFS')
+
+    frame_entries_i = Frame(tab_ipfs, relief='ridge', borderwidth=0)
+    frame_entries_i.grid(row=0, column=0, pady=5, padx=5)
+
+    frame_table = Frame(tab_ipfs, relief='ridge', borderwidth=0)
+    frame_table.grid(row=1, column=0, sticky=W + E + N, pady=5, padx=5)
+
+    ipfs_output_op_stringvar = StringVar()
+    ipfs_output_op_stringvar.set("Operation:")
+    ipfs_output_op_label = Label(tab_ipfs, textvariable=ipfs_output_op_stringvar)
+    ipfs_output_op_label.grid(row=3, column=0, sticky=E, pady=5, padx=5)
+
+    ipfs_output_op = Entry(tab_ipfs, width=60)
+    ipfs_output_op.grid(row=3, column=1, sticky=W, pady=5, padx=5)
+
+    ipfs_output_hash_stringvar = StringVar()
+    ipfs_output_hash_stringvar.set("Hash:")
+    ipfs_output_hash_label = Label(tab_ipfs, textvariable=ipfs_output_hash_stringvar)
+    ipfs_output_hash_label.grid(row=4, column=0, sticky=E, pady=5, padx=5)
+
+    ipfs_output_hash = Entry(tab_ipfs, width=60)
+    ipfs_output_hash.grid(row=4, column=1, sticky=W, pady=5, padx=5)
+
+    ipfs_output_filename_stringvar = StringVar()
+    ipfs_output_filename_stringvar.set("Filename:")
+    ipfs_output_filename_label = Label(tab_ipfs, textvariable=ipfs_output_filename_stringvar)
+    ipfs_output_filename_label.grid(row=5, column=0, sticky=E, pady=5, padx=5)
+
+    ipfs_output_file = Entry(tab_ipfs, width=60)
+    ipfs_output_file.grid(row=5, column=1, sticky=W, pady=5, padx=5)
+
+    ipfs_output_fingerprint_stringvar = StringVar()
+    ipfs_output_fingerprint_stringvar.set("Fingerprint:")
+    ipfs_output_fingerprint_label = Label(tab_ipfs, textvariable=ipfs_output_fingerprint_stringvar)
+    ipfs_output_fingerprint_label.grid(row=6, column=0, sticky=E, pady=5, padx=5)
+
+    ipfs_fingerprint = Entry(tab_ipfs, width=60)
+    ipfs_fingerprint.grid(row=6, column=1, sticky=W, pady=5, padx=5)
+
+    ipfs_output_hash.configure(state="readonly")
+    ipfs_output_file.configure(state="readonly")
+    ipfs_output_op.configure(state="readonly")
+    ipfs_fingerprint.configure(state="readonly")
+
+
+    check_b = Button(frame_table, text="Check IPFS", command=check_ipfs, height=1, width=15)
+    check_b.grid(row=0, column=0)
+
+    select_b = Button(frame_table, text="Upload to IPFS", command=lambda: ipfs_upload(ipfs_output_op, ipfs_output_hash, ipfs_output_file, ipfs_fingerprint), height=1, width=15)
+    select_b.grid(row=1, column=0)
+
+    save_b = Button(frame_table, text="Reference to BIS", command=ipfs_to_bis, height=1, width=15)
+    save_b.grid(row=2, column=0)
+
+    #ipfs end
+
+
     # canvas
     menubar = Menu(root)
     walletmenu = Menu(menubar, tearoff=0)
@@ -1564,7 +1681,7 @@ if __name__ == "__main__":
     walletmenu.add_command(label="Load Wallet", command=keys_load_dialog)
     walletmenu.add_command(label="Backup Wallet", command=keys_backup)
     walletmenu.add_command(label="Encrypt Wallet", command=encrypt_get_password)
-    walletmenu.add_command(label=f"Decrypt Wallet", command=decrypt_wallet)
+    walletmenu.add_command(label="Decrypt Wallet", command=decrypt_wallet)
     walletmenu.add_separator()
     walletmenu.add_command(label="Recovery", command=recover)
     walletmenu.add_separator()
