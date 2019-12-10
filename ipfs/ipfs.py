@@ -76,10 +76,10 @@ def seek_local_file(file):
                     return os.path.basename(entry)
 
 def save_local(data):
-    if not os.path.exists("references"):
-        os.mkdir("references")
+    if not os.path.exists("ipfs/references"):
+        os.mkdir("ipfs/references")
 
-    with open(f'references/{data["hash"]}.json', "w") as infile:
+    with open(f'ipfs/references/{data["hash"]}.json', "w") as infile:
         infile.write(json.dumps(data))
 
 

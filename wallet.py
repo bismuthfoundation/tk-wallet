@@ -1576,6 +1576,7 @@ if __name__ == "__main__":
 
         result = ipfs.store(ipfs_file)
         print(result)
+        ipfs.save_local(result)
 
         ipfs_output_op.delete(0, END)
         ipfs_output_hash.delete(0, END)
