@@ -28,14 +28,14 @@ def init():
 
 
 def store(file):
-    command_line = f"ipfs add {file}"
+    command_line = f'ipfs add "{file}"'
     print(command_line)
     pipe = subprocess.Popen(command_line, shell=True, stdout=subprocess.PIPE).stdout
     output = pipe.read().decode()
     pipe.close()
 
     returned = output.split()
-    result = {"operation": returned[0], "hash": returned[1], "filename": returned[2]}
+    result = {"operation": returned[0], "hash": returned[1], "filename": "".join(returned[2:])}
     return result
 
 def get(hash, filename):
