@@ -35,7 +35,7 @@ def store(file):
     pipe.close()
 
     returned = output.split()
-    result = {"operation": returned[0], "hash": returned[1], "filename": "".join(returned[2:])}
+    result = {"operation": returned[0], "hash": returned[1], "filename": " ".join(returned[2:])}
     return result
 
 def get(hash, filename):
