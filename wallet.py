@@ -374,8 +374,7 @@ def keys_load_dialog():
     sender_address.insert(INSERT, keyring.myaddress)
     sender_address.config(state=DISABLED)
 
-    t_keys = threading.Thread(target=refresh, args=(keyring.myaddress,))
-    t_keys.start()
+    refresh(keyring.myaddress)
 
 
 def keys_backup():

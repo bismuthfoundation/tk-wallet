@@ -21,6 +21,7 @@ for result in results:
     split = result[11].split(",")
     files.append(file(split[0].split("=")[1], split[1].split("=")[1], split[2].split("=")[1]))
 
+
 for file in files:
     print(file.operation)
     print(file.h)
