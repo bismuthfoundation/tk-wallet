@@ -1,6 +1,7 @@
 # todo: re-add timeouts
 # icons created using http://www.winterdrache.de/freeware/png2ico/
 
+import json
 import ast
 import csv
 import glob
@@ -345,13 +346,37 @@ def keys_untar(archive):
 
 
 def keys_load_dialog():
-    wallet_load = filedialog.askopenfilename(multiple=False, initialdir="", title="Select wallet")
+    wallet_file = filedialog.askopenfilename(multiple=False, initialdir="", title="Select wallet")
 
-    if wallet_load.endswith('.gz'):
-        app_log.warning(wallet_load)
-        wallet_load = keys_untar(wallet_load)[0]
+    if wallet_file.endswith('.gz'):
+        app_log.warning(wallet_file)
+        wallet_file = keys_untar(wallet_file)[0]
 
-    keyring.key, keyring.public_key_readable, keyring.private_key_readable, keyring.encrypted, keyring.unlocked, keyring.public_key_b64encoded, keyring.myaddress, keyring.keyfile = keys_load_new(wallet_load)  # upgrade later, remove blanks
+    try:
+        keyring.key, keyring.public_key_readable, keyring.private_key_readable, keyring.encrypted, keyring.unlocked, keyring.public_key_b64encoded, keyring.myaddress, keyring.keyfile = keys_load_new(wallet_file)  # upgrade later, remove blanks
+    except: #tornado format
+       
+        with open(wallet_file) as wf:
+            wf_loaded = json.load(wf)
+
+            all_wallets = (wf_loaded["addresses"])
+
+            picked_wallet = (all_wallets[-1]) #latest one for now
+
+            compat_wallet = {"Address": picked_wallet["address"],
+                             "Private Key": picked_wallet["private_key"],
+                             "Public Key": picked_wallet["public_key"],
+                             }
+
+            compat_wallet_file = "temp.der"
+
+            with open(compat_wallet_file, "w") as cwf:
+                cwf.write(json.dumps(compat_wallet))
+
+            keyring.key, keyring.public_key_readable, keyring.private_key_readable, keyring.encrypted, keyring.unlocked, keyring.public_key_b64encoded, keyring.myaddress, keyring.keyfile = keys_load_new(compat_wallet_file)
+
+            os.remove(compat_wallet_file)
+        
 
     encryption_button_refresh()
 
@@ -385,7 +410,7 @@ def keys_backup():
             root.filename = root.filename + ".tar.gz"
 
         files = []
-        types = ("*.der","*.json")
+        types = ("*.der", "*.json")
         for type in types:
             files.extend(glob.glob(type))
         tar = tarfile.open(root.filename, "w:gz")
