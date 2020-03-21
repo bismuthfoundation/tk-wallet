@@ -29,6 +29,7 @@ import pyqrcode
 import requests
 import socks
 import recovery
+from bismuthclient import bismuthmultiwallet
 
 from Cryptodome.Cipher import AES, PKCS1_OAEP
 from Cryptodome.Hash import SHA
@@ -382,10 +383,14 @@ def keys_backup():
     if not root.filename == "":
         if not root.filename.endswith(".tar.gz"):
             root.filename = root.filename + ".tar.gz"
-        der_files = glob.glob("*.der")
+
+        files = []
+        types = ("*.der","*.json")
+        for type in types:
+            files.extend(glob.glob(type))
         tar = tarfile.open(root.filename, "w:gz")
-        for der_file in der_files:
-            tar.add(der_file, arcname=der_file)
+        for wallet_file in files:
+            tar.add(wallet_file, arcname=wallet_file)
         tar.close()
 
 
@@ -1418,12 +1423,22 @@ if __name__ == "__main__":
 
     keys_check(app_log, "wallet.der")
 
-    #wallet_modern = bismuthmultiwallet.BismuthMultiWallet()
+    keyring.key, keyring.public_key_readable, keyring.private_key_readable, keyring.encrypted, keyring.unlocked, keyring.public_key_b64encoded, keyring.myaddress, keyring.keyfile = keys_load(private_key_load, public_key_load)
+    print(f"Keyfile: {keyring.keyfile.name}")
+
+    #update wallet to json
+    json_wallet = bismuthmultiwallet.BismuthMultiWallet()
+
+    try:
+        json_wallet.import_der(keyring.keyfile.name)
+        json_wallet.save()
+        print(f"Wallet upgraded to Tornado JSON")
+    except Exception as e:
+        print(f"Skipping wallet upgrade: {e}")
+    #update wallet to json
+
     #if not os.path.exists("wallet.json"):
     #    wallet_modern.import_der()
-
-    keyring.key, keyring.public_key_readable, keyring.private_key_readable, keyring.encrypted, keyring.unlocked, keyring.public_key_b64encoded, keyring.myaddress, keyring.keyfile = keys_load(private_key_load, public_key_load)
-    app_log.warning(f"Keyfile: {keyring.keyfile}")
 
     try:
         suggested_wallet_servers = requests.get("http://api.bismuth.live/servers/wallet/legacy.json")
