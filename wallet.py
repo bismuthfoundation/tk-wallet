@@ -68,8 +68,7 @@ class Keys:
         self.keyfile = None
 
 
-# Wallet needs a version for itself
-__version__ = '0.9.2'
+__version__ = '0.9.3'
 
 
 class Wallet():
