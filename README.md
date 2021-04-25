@@ -30,7 +30,7 @@ If you are looking for a better experience, I strongly suggest you give the [Tor
 See "releases" page for installers  
 https://github.com/bismuthfoundation/tk-wallet/releases
 
-# About bismuth
+# About Bismuth
 
 - https://bismuth.cz
 - https://github.com/bismuthfoundation/Bismuth
