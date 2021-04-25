@@ -980,7 +980,7 @@ def token_transfer(token, amount, window):
     openfield.insert(INSERT, f"{token}:{amount}")
     window.destroy()
     wallet.nbtabs.select(tab_send)
-    send_confirm(0, recipient.get(), "token:transfer", "{token}:{amount}")
+    send_confirm(0, recipient.get(), "token:transfer", (openfield.get("1.0", END)).strip())
 
 
 def token_issue(token, amount, window):
@@ -992,7 +992,7 @@ def token_issue(token, amount, window):
     recipient.insert(INSERT, keyring.myaddress)
     window.destroy()
     wallet.nbtabs.select(tab_send)
-    send_confirm(0, recipient.get(), f"token:issue", "{token}:{amount}")
+    send_confirm(0, recipient.get(), f"token:issue", (openfield.get("1.0", END)).strip())
 
 
 def tokens():
