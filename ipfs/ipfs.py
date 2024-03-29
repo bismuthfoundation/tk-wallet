@@ -84,17 +84,36 @@ def store(file):
     return result
 
 def get(hash, filename):
-    if not os.path.exists("downloaded"):
-        os.mkdir("downloaded")
+    # Ensure the directory 'downloaded' exists
+    os.makedirs("downloaded", exist_ok=True)
 
     command_line = f"ipfs get {hash} --output=downloaded/{filename}"
-    pipe = subprocess.Popen(command_line, shell=True, stdout=subprocess.PIPE).stdout
-    output = pipe.read().decode()
-    pipe.close()
+    
+    try:
+        # Use 'with' for proper cleanup of subprocess resources
+        with subprocess.Popen(command_line, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as process:
+            stdout, stderr = process.communicate()  # Wait for command to complete
+            
+            # Check for subprocess errors
+            if process.returncode != 0:
+                error_message = stderr.decode()
+                print(f"Command failed with error: {error_message}")
+                return {"error": error_message}
 
-    result = output.split()
-    #result = {"operation": returned[0], "hash": returned[1], "filename": returned[2]}
-    return result
+            # If command succeeds, decode stdout (though ipfs get might not use it)
+            output = stdout.decode()
+
+    except subprocess.CalledProcessError as e:
+        print(f"An error occurred while retrieving the file from IPFS: {e}")
+        return {"error": str(e)}
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return {"error": str(e)}
+
+    # Assuming 'ipfs get' does not produce a meaningful stdout for parsing
+    # and since the operation is simply to retrieve a file, success can
+    # be assumed from a lack of errors.
+    return output.split()
 
 def show_all():
     if os.path.exists("references"):
