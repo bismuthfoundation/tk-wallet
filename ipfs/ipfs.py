@@ -7,10 +7,8 @@ import glob
 import platform
 
 def is_windows():
-    if "Windows" in platform.system():
-        return True
-    else:
-        return False
+    return "Windows" in platform.system()
+
 
 def init():
     acceptable = ["Error: ipfs configuration file already exists!", "initializing IPFS node at"]
