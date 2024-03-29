@@ -102,6 +102,10 @@ def get(hash, filename):
 
             # If command succeeds, decode stdout (though ipfs get might not use it)
             output = stdout.decode()
+            # Assuming 'ipfs get' does not produce a meaningful stdout for parsing
+            # and since the operation is simply to retrieve a file, success can
+            # be assumed from a lack of errors.
+            return output.split()
 
     except subprocess.CalledProcessError as e:
         print(f"An error occurred while retrieving the file from IPFS: {e}")
@@ -109,11 +113,6 @@ def get(hash, filename):
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
         return {"error": str(e)}
-
-    # Assuming 'ipfs get' does not produce a meaningful stdout for parsing
-    # and since the operation is simply to retrieve a file, success can
-    # be assumed from a lack of errors.
-    return output.split()
 
 def show_all():
     if os.path.exists("references"):
