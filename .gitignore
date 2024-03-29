@@ -24,3 +24,6 @@ heavy3a.bin
 config_custom.txt
 sequencing_last
 *.der
+Output/
+wallet.*/
+*.lock
