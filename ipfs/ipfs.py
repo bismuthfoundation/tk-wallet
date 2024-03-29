@@ -12,15 +12,36 @@ def is_windows():
 
 def init():
     acceptable = ["Error: ipfs configuration file already exists!", "initializing IPFS node at"]
-
     command_line = "ipfs init"
-    pipe = subprocess.Popen(command_line, shell=True, stdout=subprocess.PIPE).stdout
-    output = pipe.read().decode()
-    pipe.close()
+    
+    try:
+        # Using 'with' ensures that resources are cleaned up promptly
+        with subprocess.Popen(command_line, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as process:
+            # It's a good practice to capture both stdout and stderr
+            stdout, stderr = process.communicate()  # This waits for the subprocess to finish
+            
+            # Decoding to convert bytes to string for easier handling
+            output = stdout.decode()
+            error = stderr.decode()
 
-    for entry in acceptable:
-        if entry in output:
-            return output
+            # Error handling: Check if there was an error during the execution
+            if process.returncode != 0:
+                print(f"Command failed with error: {error}")
+                return False
+
+            # Checking for acceptable phrases in the output
+            for entry in acceptable:
+                if entry in output:
+                    return output
+
+    except subprocess.CalledProcessError as e:
+        print(f"An error occurred while initializing IPFS: {e}")
+        return False
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return False
+
+    # If none of the acceptable entries were found in the output
     else:
         return False
 
