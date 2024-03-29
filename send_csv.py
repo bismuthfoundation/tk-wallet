@@ -46,23 +46,24 @@ else:
 
 total = 0
 nb = 0
-for line in open('rewards.csv' , 'r'):
-    data = line.strip().split(',')
-    print (data)
-    if len(data) > 1:
-        try:
-            total += float(data[1])
-            data[1] = float(data[1]) - 0.01
-            command = f"{PYTHON_EXECUTABLE} {SEND_PATH} {data[1]} {data[0]} {None} {None} {sys.argv[3]} " #arguments are passed here
-            if args.yes:
-                print(f"Running: {command} tx")
-                os.system(command)
-            else:
-                print(f"Check: {command}, didn't you forget the magic word?")
-                sys.exit(0)
-            nb += 1
-            time.sleep(interval)
-        except Exception as e:
-            print (e)
+with open("rewards.csv", "r") as rewards_file:
+    for line in rewards_file:
+        data = line.strip().split(',')
+        print(data)
+        if len(data) > 1:
+            try:
+                total += float(data[1])
+                data[1] = float(data[1]) - 0.01
+                command = f"{PYTHON_EXECUTABLE} {SEND_PATH} {data[1]} {data[0]} {None} {None} {sys.argv[3]} " #arguments are passed here
+                if args.yes:
+                    print(f"Running: {command} tx")
+                    os.system(command)
+                else:
+                    print(f"Check: {command}, didn't you forget the magic word?")
+                    sys.exit(0)
+                nb += 1
+                time.sleep(interval)
+            except Exception as e:
+                print(e)
 
 print(f"{nb} Transactions, {total} $BIS total.")
