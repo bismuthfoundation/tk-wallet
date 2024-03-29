@@ -4,7 +4,6 @@
 # operation: token:transfer
 # openfield: token_name:amount
 
-import sqlite3
 from bisbasic import log
 from hashlib import blake2b
 
