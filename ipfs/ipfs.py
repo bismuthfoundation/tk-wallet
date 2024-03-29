@@ -49,12 +49,38 @@ def init():
 def store(file):
     command_line = f'ipfs add "{file}"'
     print(command_line)
-    pipe = subprocess.Popen(command_line, shell=True, stdout=subprocess.PIPE).stdout
-    output = pipe.read().decode()
-    pipe.close()
+    
+    try:
+        # Use 'with' for resource management and to ensure the subprocess is properly cleaned up
+        with subprocess.Popen(command_line, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as process:
+            # Communicate with the process to read its output and wait for it to terminate
+            stdout, stderr = process.communicate()
+            
+            # Check for errors in execution
+            if process.returncode != 0:
+                # Decoding stderr to provide a meaningful error message
+                error_message = stderr.decode()
+                print(f"Command failed with error: {error_message}")
+                return {"error": error_message}
 
+            # Decoding stdout since we have confirmed the command was successful
+            output = stdout.decode()
+
+    except subprocess.CalledProcessError as e:
+        print(f"An error occurred while adding the file to IPFS: {e}")
+        return {"error": str(e)}
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return {"error": str(e)}
+    
+    # Assuming the command always prints the expected output format on success
     returned = output.split()
-    result = {"operation": returned[0], "hash": returned[1], "filename": " ".join(returned[2:])}
+    # Protect against index errors by checking the length of returned
+    if len(returned) >= 3:
+        result = {"operation": returned[0], "hash": returned[1], "filename": " ".join(returned[2:])}
+    else:
+        result = {"error": "Unexpected output format."}
+
     return result
 
 def get(hash, filename):
