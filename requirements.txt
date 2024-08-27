@@ -1,5 +1,5 @@
 PySocks
-bismuthclient>=0.0.47
+bismuthclient>=0.0.53
 pycryptodomex
 pillow
 pyqrcode
