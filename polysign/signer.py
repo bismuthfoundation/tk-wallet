@@ -35,7 +35,7 @@ class SignerSubType(Enum):
 class Signer(ABC):
 
     # Slots allow to spare ram when there can be several instances
-    __slot__ = ('_private_key', '_public_key', '_address', '_type', '_subtype', '_compressed', 'verbose')
+    __slots__ = ('_private_key', '_public_key', '_address', '_type', '_subtype', '_compressed', 'verbose')
 
     _address_versions = {SignerSubType.MAINNET_REGULAR: b'\x00'}
 

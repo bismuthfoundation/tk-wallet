@@ -1464,6 +1464,7 @@ if __name__ == "__main__":
     #if not os.path.exists("wallet.json"):
     #    wallet_modern.import_der()
 
+
     try:
         suggested_wallet_servers = requests.get("http://api.bismuth.live/servers/wallet/legacy.json")
         if suggested_wallet_servers.status_code == 200:
@@ -1474,7 +1475,20 @@ if __name__ == "__main__":
                     wallet.light_ip[entry["ip"]] = str(entry["port"])
 
     except Exception as e:
-        app_log.warning("Error {} getting Server list from API, using local list instead".format(e))
+        app_log.warning("Error {} getting Server list from primary API, trying backup API...".format(e))
+        # Now try the backup API
+        try:
+            suggested_wallet_servers_backup = requests.get("https://bismuth.world/api/legacy.json")
+            if suggested_wallet_servers_backup.status_code == 200:
+                wallet.light_ip.clear()
+
+                for entry in suggested_wallet_servers_backup.json():
+                    if entry["active"]:
+                        wallet.light_ip[entry["ip"]] = str(entry["port"])
+                        
+        except Exception as e_backup:
+            app_log.warning("Error {} getting Server list from backup API, using local list instead".format(e_backup))
+
 
     # light_ip.insert(0,node_ip)
     # light_ip = "127.0.0.1:8150"
