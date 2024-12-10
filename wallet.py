@@ -1,25 +1,23 @@
 # todo: re-add timeouts
 # icons created using http://www.winterdrache.de/freeware/png2ico/
 
-import json
 import ast
+import base64
 import csv
 import glob
+import hashlib
+import json
 import os
 import random
-import platform
 import re
 import tarfile
 import threading
 import time
 import webbrowser
-from ipfs import ipfs
-import base64
-import hashlib
 from datetime import datetime
 from decimal import *
 # from operator import itemgetter
-from tkinter import (DISABLED, END, INSERT, LEFT, NORMAL, NW, WORD, BooleanVar,
+from tkinter import (DISABLED, END, INSERT, LEFT, NORMAL, NW, BooleanVar,
                      Button, Canvas, Checkbutton, E, Entry, Frame, Label,
                      Listbox, Menu, N, S, Scrollbar, StringVar, Text, Tk,
                      Toplevel, W, filedialog, messagebox, ttk)
@@ -28,27 +26,24 @@ import PIL.Image
 import PIL.ImageTk
 import pyqrcode
 import requests
-import socks
-import recovery
-from bismuthclient import bismuthmultiwallet
-
 from Cryptodome.Cipher import AES, PKCS1_OAEP
 from Cryptodome.Hash import SHA
 from Cryptodome.PublicKey import RSA
 from Cryptodome.Random import get_random_bytes
 from Cryptodome.Signature import PKCS1_v1_5
-
 from bisbasic import essentials, options
-from polysign.signerfactory import SignerFactory
 from bisbasic.quantizer import quantize_eight
-from tokensv2 import *
-
-#NEW
-from bismuthclient.bismuthclient import rpcconnections
-from bismuthclient import bismuthutil
-from bismuthclient.simplecrypt import encrypt, decrypt
-from bismuthclient.bismuthcrypto import keys_check, keys_load, keys_load_new, keys_save
 from bismuthclient import bismuthmultiwallet
+from bismuthclient import bismuthutil
+# NEW
+from bismuthclient.bismuthclient import rpcconnections
+from bismuthclient.bismuthcrypto import keys_check, keys_load, keys_load_new, keys_save
+from bismuthclient.simplecrypt import encrypt, decrypt
+
+import recovery
+from ipfs import ipfs
+from polysign.signerfactory import SignerFactory
+from tokensv2 import *
 
 bismuth_util = bismuthutil.BismuthUtil()
 
@@ -68,7 +63,7 @@ class Keys:
         self.keyfile = None
 
 
-__version__ = '0.9.3'
+__version__ = '0.9.4'
 
 
 class Wallet():

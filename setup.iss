@@ -1,6 +1,6 @@
 [Setup]
 AppName=Bismuth Wallet
-AppVersion=0.8.6
+AppVersion=0.9.4
 DefaultDirName={pf}\Bismuth Wallet
 DefaultGroupName=Bismuth Wallet
 UninstallDisplayIcon={app}\wallet.exe
