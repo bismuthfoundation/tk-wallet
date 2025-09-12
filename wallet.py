@@ -1959,7 +1959,7 @@ if __name__ == "__main__":
     hyperlink_BISGit = Button(frame_hyperlinks, text="Github Repository", command=lambda: webbrowser.open("https://github.com/bismuthfoundation/Bismuth/releases", new=1), font=("Tahoma", 7))
     hyperlink_BISGit.grid(row=0, column=0, sticky=N + E + S + W, padx=1, pady=1)
 
-    hyperlink_BE = Button(frame_hyperlinks, text="Blockchain Explorer", command=lambda: webbrowser.open("https://bismuth.online", new=1), font=("Tahoma", 7))
+    hyperlink_BE = Button(frame_hyperlinks, text="Blockchain Explorer", command=lambda: webbrowser.open("https://bismuth.im", new=1), font=("Tahoma", 7))
     hyperlink_BE.grid(row=1, column=0, sticky=N + E + S + W, padx=1, pady=1)
 
     hyperlink_howto = Button(frame_hyperlinks, text="Guides", command=lambda: webbrowser.open("https://github.com/EggPool/BismuthHowto", new=1), font=("Tahoma", 7))
