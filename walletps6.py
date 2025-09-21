@@ -211,7 +211,7 @@ class MainWindow(QMainWindow):
 
         # Update light_ip from API if possible
         try:
-            response = requests.get("http://api.bismuth.live/servers/wallet/legacy.json", timeout=5)
+            response = requests.get("https://bismuth.world/api/legacy.json", timeout=5)
             if response.status_code == 200:
                 self.wallet_state.light_ip.clear()
                 for entry in response.json():
